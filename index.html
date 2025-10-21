@@ -1,0 +1,1948 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSCAR OSPINO | CRIOSER SOLUTIONS Gestión de Revisiones</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #170155; /* Dark Purple */
+            --secondary-color: #F5F5F5; /* Light Gray */
+            --accent-color: #8A8A8A; /* Medium Gray */
+            --text-color: #333333;
+            --background-light: #FFFFFF;
+            --border-color: #E0E0E0;
+            --success-color: #4CAF50;
+            --error-color: #F44336;
+            --warning-color: #FF9800;
+            --info-color: #2196F3;
+        }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            margin: 0;
+            background-color: var(--background-light);
+            color: var(--text-color);
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Improved Sidebar with Animation */
+        .sidebar {
+            width: 250px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            box-sizing: border-box;
+            position: fixed;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            transition: width 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            width: 60px;
+        }
+
+        .sidebar .logo {
+            width: 150px;
+            margin-bottom: 30px;
+            transition: width 0.3s ease;
+        }
+
+        .sidebar.collapsed .logo {
+            width: 40px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            width: 100%;
+        }
+
+        .sidebar ul li {
+            margin-bottom: 15px;
+        }
+
+        .sidebar ul li a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            border-radius: 5px;
+        }
+
+        .sidebar ul li a i {
+            margin-right: 10px;
+            min-width: 20px;
+        }
+
+        .sidebar ul li a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .sidebar.collapsed ul li a span {
+            display: none;
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            top: 10px;
+            right: -15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-toggle:hover {
+            transform: rotate(180deg);
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 30px;
+            flex-grow: 1;
+            width: calc(100% - 250px);
+            box-sizing: border-box;
+            transition: margin-left 0.3s ease, width 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: 60px;
+            width: calc(100% - 60px);
+        }
+
+        header {
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-size: 1.8em;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .section {
+            display: none;
+            background-color: var(--background-light);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .section.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            font-size: 1.6em;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        /* Home Section with Animated Cards */
+        #homeSection .start-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .start-option {
+            text-align: center;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background-color: var(--secondary-color);
+        }
+
+        .start-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .start-option img {
+            max-width: 150px;
+            height: auto;
+            margin-bottom: 15px;
+            transition: transform 0.3s ease;
+        }
+
+        .start-option:hover img {
+            transform: scale(1.1);
+        }
+
+        .start-option h3 {
+            font-size: 1.2em;
+            font-weight: 400;
+            margin: 0;
+        }
+
+        /* Improved Forms with Animations */
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 400;
+            transition: color 0.3s ease;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 1em;
+            box-sizing: border-box;
+            background-color: var(--background-light);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 5px rgba(23, 1, 85, 0.2);
+        }
+
+        .param-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .param-table th, .param-table td {
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            text-align: left;
+            transition: background-color 0.3s ease;
+        }
+
+        .param-table th {
+            background-color: var(--secondary-color);
+            font-weight: 700;
+        }
+
+        .param-table tr:hover {
+            background-color: rgba(245, 245, 245, 0.5);
+        }
+
+        .param-table input {
+            width: 100%;
+            padding: 8px;
+            border: none;
+            background: transparent;
+            transition: background-color 0.3s ease;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 400;
+            background-color: var(--primary-color);
+            color: white;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #0d0033;
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background-color: var(--accent-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: #6F6F6F;
+            transform: scale(1.05);
+        }
+
+        /* Improved Review Table with Hover Effects */
+        .review-table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        .review-table {
+            width: 100%;
+            border-collapse: collapse;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .review-table th, .review-table td {
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            text-align: left;
+            transition: background-color 0.3s ease;
+        }
+
+        .review-table th {
+            background-color: var(--secondary-color);
+            font-weight: 700;
+        }
+
+        .review-table tr:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .review-table .actions button {
+            margin-right: 5px;
+            padding: 5px 10px;
+            font-size: 0.9em;
+            border-radius: 4px;
+            transition: transform 0.3s ease;
+        }
+
+        .review-table .actions button:hover {
+            transform: scale(1.1);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: auto;
+            padding: 15px;
+            text-align: center;
+            color: var(--accent-color);
+            border-top: 1px solid var(--border-color);
+            font-size: 0.9em;
+        }
+
+        /* Custom Alert Styles */
+        .custom-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            z-index: 2000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .custom-alert.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .custom-alert.success {
+            background-color: var(--success-color);
+        }
+
+        .custom-alert.error {
+            background-color: var(--error-color);
+        }
+
+        .custom-alert.warning {
+            background-color: var(--warning-color);
+        }
+
+        .custom-alert.info {
+            background-color: var(--info-color);
+        }
+
+        /* Custom Confirm Modal */
+        .custom-confirm {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .custom-confirm.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .custom-confirm button {
+            margin: 10px 5px;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .custom-confirm .confirm-yes {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .custom-confirm .confirm-no {
+            background-color: var(--error-color);
+            color: white;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1999;
+            display: none;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        /* PDF Templates for Page Splitting */
+        .pdf-template-page {
+            width: 612pt; /* A4 width less margin (595pt A4 width) */
+            padding: 40pt;
+            box-sizing: border-box;
+            background: white;
+            font-family: 'Poppins', sans-serif;
+            color: #333;
+            display: none; /* Keep hidden until rendering */
+        }
+
+        /* Estilos del encabezado del PDF */
+        .pdf-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 40pt;
+            padding-bottom: 10pt;
+            border-bottom: 2pt solid #00008B;
+        }
+
+        .pdf-header img {
+            max-width: 120pt;
+            height: auto;
+            margin-left: 20pt;
+        }
+
+        .pdf-header-info {
+            text-align: left;
+            font-size: 10pt;
+            line-height: 1.4;
+        }
+
+        .pdf-header-info h1 {
+            color: #00008B;
+            font-size: 16pt;
+            margin-bottom: 5pt;
+        }
+
+        .pdf-header-info p {
+            margin: 0;
+        }
+
+        /* Estilos de información del cliente y factura */
+        .pdf-review-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30pt;
+            border: 1pt solid #ddd;
+            padding: 15pt;
+            border-radius: 5pt;
+            background-color: #f9f9f9;
+        }
+
+        .pdf-review-details div {
+            flex: 1;
+            font-size: 10pt;
+            line-height: 1.5;
+        }
+
+        .pdf-review-details h3 {
+            color: #00008B;
+            font-size: 12pt;
+            margin-bottom: 10pt;
+            border-bottom: 1pt solid #eee;
+            padding-bottom: 5pt;
+        }
+
+        .pdf-review-details p {
+            margin: 0;
+            margin-bottom: 5pt;
+        }
+
+        .pdf-review-details strong {
+            color: #00008B;
+        }
+
+        /* Estilos de la tabla de ítems del PDF */
+        .pdf-params-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30pt;
+        }
+
+        .pdf-params-table th, .pdf-params-table td {
+            border: 1pt solid #ddd;
+            padding: 10pt;
+            text-align: left;
+            font-size: 9pt;
+        }
+
+        .pdf-params-table th {
+            background-color: #00008B;
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .pdf-params-table tbody tr:nth-child(even) {
+            background-color: #f0f0f0;
+        }
+
+        .pdf-params-table .text-right {
+            text-align: right;
+        }
+
+        .pdf-conclusion-section {
+            display: flex;
+            justify-content: flex-end;
+            font-size: 11pt;
+            font-weight: 700;
+            margin-top: 20pt;
+            border-top: 2pt solid #00008B;
+            padding-top: 10pt;
+        }
+
+        .pdf-conclusion-section div {
+            width: 100%;
+        }
+
+        .pdf-notes {
+            margin-top: 30pt;
+            font-size: 9pt;
+            line-height: 1.5;
+            padding: 10pt;
+            background-color: #f9f9f9;
+            border: 1pt solid #eee;
+            border-radius: 5pt;
+        }
+
+        .pdf-notes h4 {
+            font-size: 10pt;
+            margin-bottom: 5pt;
+            color: #00008B;
+        }
+
+        /* Estilos para la sección de imágenes en el PDF */
+        .pdf-images-section {
+            margin-top: 30pt;
+            padding-top: 15pt;
+            border-top: 1pt solid #eee;
+        }
+
+        .pdf-images-section h4 {
+            font-size: 10pt;
+            margin-bottom: 15pt;
+            color: #00008B;
+            text-align: center;
+        }
+
+        .pdf-images-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10pt;
+            justify-content: center; /* Center images horizontally */
+        }
+
+        .pdf-images-container img {
+            max-width: 45%; /* Adjust based on desired layout, e.g., two images per row */
+            height: auto;
+            border: 1pt solid #ddd;
+            padding: 5pt;
+            box-sizing: border-box;
+            max-height: 150pt; /* Limit height to prevent images from being too large */
+            object-fit: contain; /* Ensure the image fits within the bounds without cropping */
+        }
+
+        /* Estilos del pie de página del PDF */
+        .pdf-footer {
+            margin-top: 30pt; /* Adjusted margin to not be 'auto' as we are capturing as image */
+            text-align: center;
+            font-size: 8pt;
+            color: #666;
+            border-top: 1pt solid #eee;
+            padding-top: 10pt;
+        }
+
+        @media print {
+            body > *:not(.pdf-template-page) {
+                display: none !important;
+            }
+            .pdf-template-page {
+                display: block !important;
+                width: 100% !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+            }
+
+            .sidebar .logo {
+                width: 40px;
+            }
+
+            .sidebar ul li a span {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 60px;
+                width: calc(100% - 60px);
+                padding: 15px;
+            }
+
+            .start-options {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Image preview styles */
+        .image-preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+            border: 1px dashed var(--border-color);
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .image-preview-item {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            background-color: var(--secondary-color);
+            transition: transform 0.3s ease;
+        }
+
+        .image-preview-item:hover {
+            transform: scale(1.05);
+        }
+
+        .image-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-preview-item .remove-image-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(0,0,0,0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .image-preview-item .remove-image-btn:hover {
+            background-color: rgba(0,0,0,0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay" id="overlay"></div>
+    <div class="custom-confirm" id="customConfirm">
+        <p id="confirmMessage"></p>
+        <button class="confirm-yes" id="confirmYes">Sí</button>
+        <button class="confirm-no" id="confirmNo">No</button>
+    </div>
+
+    <nav class="sidebar" id="sidebar">
+        <img src="LOGO.png" alt="Logo" class="logo">
+        <ul>
+            <li><a href="#" onclick="showSection('homeSection')" class="active"><i class="fas fa-home"></i> <span>Home</span></a></li>
+            <li><a href="#" onclick="showSection('createAireSection')"><i class="fas fa-plus"></i> <span>Revisión Aire</span></a></li>
+            <li><a href="#" onclick="showSection('createNeveraSection')"><i class="fas fa-plus"></i> <span>Revisión Nevera</span></a></li>
+            <li><a href="#" onclick="showSection('manageSection')"><i class="fas fa-list"></i> <span>Gestionar</span></a></li>
+            <li><a href="#" onclick="showSection('settingsSection')"><i class="fas fa-cog"></i> <span>Ajustes</span></a></li>
+        </ul>
+        <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-chevron-left"></i></button>
+    </nav>
+
+    <div class="main-content" id="mainContent">
+        <header>
+            <h1>Gestión de Revisiones Técnicas</h1>
+        </header>
+
+        <section id="homeSection" class="section active">
+            <h2>Inicio</h2>
+            <div class="start-options">
+                <div class="start-option" onclick="showSection('createAireSection')">
+                    <img src="LogoAire.png" alt="Aire Acondicionado">
+                    <h3>Iniciar Diagnóstico de Aire</h3>
+                </div>
+                <div class="start-option" onclick="showSection('createNeveraSection')">
+                    <img src="LogoNevera.jpg" alt="Nevera">
+                    <h3>Iniciar Diagnóstico de Nevera</h3>
+                </div>
+            </div>
+        </section>
+
+        <section id="createAireSection" class="section">
+            <h2>Diagnóstico de Aire Acondicionado</h2>
+            <form id="aireForm">
+                <div class="form-group">
+                    <label for="fecha">Fecha</label>
+                    <input type="date" id="fecha" name="fecha" required>
+                </div>
+                <div class="form-group">
+                    <label for="tecnico">Técnico</label>
+                    <input type="text" id="tecnico" name="tecnico" required>
+                </div>
+                <div class="form-group">
+                    <label for="cliente">Cliente</label>
+                    <input type="text" id="cliente" name="cliente" required>
+                </div>
+                <div class="form-group">
+                    <label for="direccion">Dirección</label>
+                    <input type="text" id="direccion" name="direccion" required>
+                </div>
+                <div class="form-group">
+                    <label for="telefono">Teléfono</label>
+                    <input type="text" id="telefono" name="telefono" required>
+                </div>
+                <div class="form-group">
+                    <label for="marca">Marca</label>
+                    <input type="text" id="marca" name="marca" required>
+                </div>
+                <div class="form-group">
+                    <label for="modelo">Modelo</label>
+                    <input type="text" id="modelo" name="modelo" required>
+                </div>
+                <div class="form-group">
+                    <label for="tipo">Tipo</label>
+                    <input type="text" id="tipo" name="tipo" required>
+                </div>
+                <div class="form-group">
+                    <label for="capacidad">Capacidad</label>
+                    <input type="text" id="capacidad" name="capacidad" required>
+                </div>
+
+                <h3>Parámetros Eléctricos</h3>
+                <table class="param-table" id="aireElectricos">
+                    <thead>
+                        <tr>
+                            <th>Parámetro</th>
+                            <th>Valor Medido</th>
+                            <th>Valor Normal</th>
+                            <th>Observaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Voltaje de alimentación (V)</td>
+                            <td><input type="text" name="voltajeMedido"></td>
+                            <td>110V / 220V ±10%</td>
+                            <td><input type="text" name="voltajeObs"></td>
+                        </tr>
+                        <tr>
+                            <td>Corriente total (A)</td>
+                            <td><input type="text" name="corrienteTotalMedido"></td>
+                            <td>Según placa técnica</td>
+                            <td><input type="text" name="corrienteTotalObs"></td>
+                        </tr>
+                        <tr>
+                            <td>Corriente del compresor (A)</td>
+                            <td><input type="text" name="compresorMedido"></td>
+                            <td>±10% del nominal</td>
+                            <td><input type="text" name="compresorObs"></td>
+                        </tr>
+                        <tr>
+                            <td>Corriente del ventilador exterior (A)</td>
+                            <td><input type="text" name="ventExteriorMedido"></td>
+                            <td>0.3–1.5 A aprox.</td>
+                            <td><input type="text" name="ventExteriorObs"></td>
+                        </tr>
+                        <tr>
+                            <td>Corriente del ventilador interior (A)</td>
+                            <td><input type="text" name="ventInteriorMedido"></td>
+                            <td>0.2–1 A aprox.</td>
+                            <td><input type="text" name="ventInteriorObs"></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Parámetros de Refrigeración</h3>
+                <table class="param-table" id="aireRefrigeracion">
+                    <thead>
+                        <tr>
+                            <th>Parámetro</th>
+                            <th>Valor Medido</th>
+                            <th>Rango Normal</th>
+                            <th>Observaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Presión de succión (PSI)</td>
+                            <td><input type="text" name="succPsiMedido"></td>
+                            <td>60–80 (R410A) / 45–65 (R22)</td>
+                            <td><input type="text" name="succPsiObs"></td>
+                        </tr>
+                        <tr>
+                            <td>Presión de descarga (PSI)</td>
+                            <td><input type="text" name="descPsiMedido"></td>
+                            <td>280–320 (R410A) / 200–250 (R22)</td>
+                            <td><input type="text" name="descPsiObs"></td>
+                        </tr>
+                        <tr>
+                            <td>Temperatura de succión (°C)</td>
+                            <td><input type="text" name="succTempMedido"></td>
+                            <td>5–10</td>
+                            <td><input type="text" name="succTempObs"></td>
+                        </tr>
+                        <tr>
+                            <td>Temperatura de descarga (°C)</td>
+                            <td><input type="text" name="descTempMedido"></td>
+                            <td>70–90</td>
+                            <td><input type="text" name="descTempObs"></td>
+                        </tr>
+                        <tr>
+                            <td>∆T (diferencia entrada-salida)</td>
+                            <td><input type="text" name="deltaTMedido"></td>
+                            <td>8–12</td>
+                            <td><input type="text" name="deltaTObs"></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="form-group">
+                    <label for="conclusion">Conclusión y Recomendaciones</label>
+                    <textarea id="conclusion" name="conclusion"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="imageUpload">Adjuntar Imágenes (máx. 5)</label>
+                    <input type="file" id="imageUpload" multiple accept="image/*">
+                    <div id="imagePreviewsContainer" class="image-preview-container"></div>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn">Guardar Revisión</button>
+                    <button type="button" class="btn" onclick="generatePdfAire(null)">Generar PDF</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetFormAire()">Limpiar</button>
+                </div>
+            </form>
+        </section>
+
+        <section id="createNeveraSection" class="section">
+            <h2>Diagnóstico de Nevera</h2>
+            <form id="neveraForm">
+                <div class="form-group">
+                    <label for="fechaNevera">Fecha</label>
+                    <input type="date" id="fechaNevera" name="fecha" required>
+                </div>
+                <div class="form-group">
+                    <label for="tecnicoNevera">Técnico</label>
+                    <input type="text" id="tecnicoNevera" name="tecnico" required>
+                </div>
+                <div class="form-group">
+                    <label for="clienteNevera">Cliente</label>
+                    <input type="text" id="clienteNevera" name="cliente" required>
+                </div>
+                <div class="form-group">
+                    <label for="direccionNevera">Dirección</label>
+                    <input type="text" id="direccionNevera" name="direccion" required>
+                </div>
+                <div class="form-group">
+                    <label for="telefonoNevera">Teléfono</label>
+                    <input type="text" id="telefonoNevera" name="telefono" required>
+                </div>
+                <div class="form-group">
+                    <label for="marcaNevera">Marca</label>
+                    <input type="text" id="marcaNevera" name="marca" required>
+                </div>
+                <div class="form-group">
+                    <label for="modeloNevera">Modelo</label>
+                    <input type="text" id="modeloNevera" name="modelo" required>
+                </div>
+                <div class="form-group">
+                    <label for="tipoNevera">Tipo</label>
+                    <input type="text" id="tipoNevera" name="tipo" required>
+                </div>
+                <div class="form-group">
+                    <label for="capacidadNevera">Capacidad</label>
+                    <input type="text" id="capacidadNevera" name="capacidad" required>
+                </div>
+
+                <h3>Parámetros Eléctricos</h3>
+                <table class="param-table" id="neveraElectricos">
+                    <thead>
+                        <tr>
+                            <th>Parámetro</th>
+                            <th>Valor Medido</th>
+                            <th>Valor Normal</th>
+                            <th>Observaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Voltaje (V)</td>
+                            <td><input type="text" name="voltajeMedido"></td>
+                            <td>110V ±10%</td>
+                            <td><input type="text" name="voltajeObs"></td>
+                        </tr>
+                        <tr>
+                            <td>Corriente total (A)</td>
+                            <td><input type="text" name="corrienteTotalMedido"></td>
+                            <td>Según placa</td>
+                            <td><input type="text" name="corrienteTotalObs"></td>
+                        </tr>
+                        <tr>
+                            <td>Corriente del compresor (A)</td>
+                            <td><input type="text" name="compresorMedido"></td>
+                            <td>±10% del nominal</td>
+                            <td><input type="text" name="compresorObs"></td>
+                        </tr>
+                        <tr>
+                            <td>Continuidad de tierra</td>
+                            <td><input type="text" name="continuidadMedido"></td>
+                            <td>Debe existir</td>
+                            <td><input type="text" name="continuidadObs"></td>
+                        </tr>
+                        <tr>
+                            <td>Relé/PTC</td>
+                            <td><input type="text" name="releMedido"></td>
+                            <td>Correcto</td>
+                            <td><input type="text" name="releObs"></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Parámetros de Refrigeración</h3>
+                <table class="param-table" id="neveraRefrigeracion">
+                    <thead>
+                        <tr>
+                            <th>Parámetro</th>
+                            <th>Valor Medido</th>
+                            <th>Rango Normal</th>
+                            <th>Observaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Presión de succión (PSI)</td>
+                            <td><input type="text" name="succPsiMedido"></td>
+                            <td>0–5 (R600a) / 5–10 (R134a)</td>
+                            <td><input type="text" name="succPsiObs"></td>
+                        </tr>
+                        <tr>
+                            <td>Presión de descarga (PSI)</td>
+                            <td><input type="text" name="descPsiMedido"></td>
+                            <td>120–150 (R600a) / 150–180 (R134a)</td>
+                            <td><input type="text" name="descPsiObs"></td>
+                        </tr>
+                        <tr>
+                            <td>Temp. evaporador (°C)</td>
+                            <td><input type="text" name="evapTempMedido"></td>
+                            <td>-18 a -25</td>
+                            <td><input type="text" name="evapTempObs"></td>
+                        </tr>
+                        <tr>
+                            <td>Temp. condensador (°C)</td>
+                            <td><input type="text" name="condTempMedido"></td>
+                            <td>45–60</td>
+                            <td><input type="text" name="condTempObs"></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="form-group">
+                    <label for="conclusionNevera">Conclusión y Recomendaciones</label>
+                    <textarea id="conclusionNevera" name="conclusion"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="imageUploadNevera">Adjuntar Imágenes (máx. 5)</label>
+                    <input type="file" id="imageUploadNevera" multiple accept="image/*">
+                    <div id="imagePreviewsContainerNevera" class="image-preview-container"></div>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn">Guardar Revisión</button>
+                    <button type="button" class="btn" onclick="generatePdfNevera(null)">Generar PDF</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetFormNevera()">Limpiar</button>
+                </div>
+            </form>
+        </section>
+
+        <section id="manageSection" class="section">
+            <h2>Gestionar Revisiones</h2>
+            <div class="form-group">
+                <label for="search">Buscar por Cliente o Fecha</label>
+                <input type="text" id="search" onkeyup="filterReviews()">
+            </div>
+            <div class="review-table-container">
+                <table class="review-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Tipo</th>
+                            <th>Cliente</th>
+                            <th>Técnico</th>
+                            <th>Marca/Modelo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reviewsTableBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="settingsSection" class="section">
+            <h2>Ajustes de la Empresa</h2>
+            <form id="settingsForm">
+                <div class="form-group">
+                    <label for="companyName">Nombre de la Empresa</label>
+                    <input type="text" id="companyName" name="companyName" value="OSCAR OSPINO | CRIOSER SOLUTIONS">
+                </div>
+                <div class="form-group">
+                    <label for="companyAddress">Dirección</label>
+                    <input type="text" id="companyAddress" name="companyAddress">
+                </div>
+                <div class="form-group">
+                    <label for="companyPhone">Teléfono</label>
+                    <input type="text" id="companyPhone" name="companyPhone">
+                </div>
+                <div class="form-group">
+                    <label for="companyEmail">Email</label>
+                    <input type="text" id="companyEmail" name="companyEmail">
+                </div>
+                <div class="form-group">
+                    <label for="companyNIT">NIT</label>
+                    <input type="text" id="companyNIT" name="companyNIT">
+                </div>
+                <div class="form-group">
+                    <label for="companyLogo">Logo de la Empresa</label>
+                    <input type="file" id="companyLogo" accept="image/*">
+                    <div id="logoPreview"></div>
+                </div>
+                <div class="button-group">
+                    <button type="submit" class="btn">Guardar Ajustes</button>
+                </div>
+            </form>
+        </section>
+
+        <footer>
+            <p>&copy; <span id="currentYear"></span> OSCAR OSPINO | CRIOSER SOLUTIONS. Todos los derechos reservados.</p>
+        </footer>
+
+        <div id="pdfTemplateAirePage1" class="pdf-template-page">
+            <div class="pdf-header">
+                <div class="pdf-header-info">
+                    <h1 id="pdfHeaderCompanyNameAire">OSCAR OSPINO | CRIOSER SOLUTIONS</h1>
+                    <p id="pdfCompanyAddressAire">Dirección de la Empresa</p>
+                    <p id="pdfCompanyPhoneAire">Teléfono: (XXX) XXX-XXXX</p>
+                    <p id="pdfCompanyEmailAire">Email: tu_correo@empresa.com</p>
+                    <p id="pdfCompanyNITAire">NIT: XXX.XXX.XXX-X</p>
+                </div>
+                <img id="pdfCompanyLogoAire" src="" alt="Logo">
+            </div>
+            <div class="pdf-review-details">
+                <div>
+                    <h3>Información del Cliente</h3>
+                    <p><strong>Cliente:</strong> <span id="pdfClienteAire"></span></p>
+                    <p><strong>Dirección:</strong> <span id="pdfDireccionAire"></span></p>
+                    <p><strong>Teléfono:</strong> <span id="pdfTelefonoAire"></span></p>
+                </div>
+                <div>
+                    <h3>Información de la Revisión</h3>
+                    <p><strong>Fecha:</strong> <span id="pdfFechaAire"></span></p>
+                    <p><strong>Técnico:</strong> <span id="pdfTecnicoAire"></span></p>
+                    <p><strong>Marca:</strong> <span id="pdfMarcaAire"></span></p>
+                    <p><strong>Modelo:</strong> <span id="pdfModeloAire"></span></p>
+                    <p><strong>Tipo:</strong> <span id="pdfTipoAire"></span></p>
+                    <p><strong>Capacidad:</strong> <span id="pdfCapacidadAire"></span></p>
+                </div>
+            </div>
+            <h3>Parámetros Eléctricos</h3>
+            <table id="pdfElectricosAire" class="pdf-params-table">
+                <thead>
+                    <tr>
+                        <th>Parámetro</th>
+                        <th>Valor Medido</th>
+                        <th>Valor Normal</th>
+                        <th>Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div id="pdfTemplateAirePage2" class="pdf-template-page">
+            <h3>Parámetros de Refrigeración</h3>
+            <table id="pdfRefrigeracionAire" class="pdf-params-table">
+                <thead>
+                    <tr>
+                        <th>Parámetro</th>
+                        <th>Valor Medido</th>
+                        <th>Rango Normal</th>
+                        <th>Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div class="pdf-notes">
+                <h4>Conclusión y Recomendaciones</h4>
+                <p id="pdfConclusionAire"></p>
+            </div>
+            <div class="pdf-images-section">
+                <h4>Imágenes del Trabajo</h4>
+                <div id="pdfImagesContainerAire" class="pdf-images-container"></div>
+            </div>
+            <div class="pdf-footer">
+                <p>Gracias por confiar en nosotros. Este documento fue generado digitalmente. &copy; <span id="pdfCurrentYearAire"></span> OSCAR OSPINO | CRIOSER SOLUTIONS.</p>
+            </div>
+        </div>
+
+        <div id="pdfTemplateNeveraPage1" class="pdf-template-page">
+            <div class="pdf-header">
+                <div class="pdf-header-info">
+                    <h1 id="pdfHeaderCompanyNameNevera">OSCAR OSPINO | CRIOSER SOLUTIONS</h1>
+                    <p id="pdfCompanyAddressNevera">Dirección de la Empresa</p>
+                    <p id="pdfCompanyPhoneNevera">Teléfono: (XXX) XXX-XXXX</p>
+                    <p id="pdfCompanyEmailNevera">Email: tu_correo@empresa.com</p>
+                    <p id="pdfCompanyNITAvera">NIT: XXX.XXX.XXX-X</p>
+                </div>
+                <img id="pdfCompanyLogoNevera" src="" alt="Logo">
+            </div>
+            <div class="pdf-review-details">
+                <div>
+                    <h3>Información del Cliente</h3>
+                    <p><strong>Cliente:</strong> <span id="pdfClienteNevera"></span></p>
+                    <p><strong>Dirección:</strong> <span id="pdfDireccionNevera"></span></p>
+                    <p><strong>Teléfono:</strong> <span id="pdfTelefonoNevera"></span></p>
+                </div>
+                <div>
+                    <h3>Información de la Revisión</h3>
+                    <p><strong>Fecha:</strong> <span id="pdfFechaNevera"></span></p>
+                    <p><strong>Técnico:</strong> <span id="pdfTecnicoNevera"></span></p>
+                    <p><strong>Marca:</strong> <span id="pdfMarcaNevera"></span></p>
+                    <p><strong>Modelo:</strong> <span id="pdfModeloNevera"></span></p>
+                    <p><strong>Tipo:</strong> <span id="pdfTipoNevera"></span></p>
+                    <p><strong>Capacidad:</strong> <span id="pdfCapacidadNevera"></span></p>
+                </div>
+            </div>
+            <h3>Parámetros Eléctricos</h3>
+            <table id="pdfElectricosNevera" class="pdf-params-table">
+                <thead>
+                    <tr>
+                        <th>Parámetro</th>
+                        <th>Valor Medido</th>
+                        <th>Valor Normal</th>
+                        <th>Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div id="pdfTemplateNeveraPage2" class="pdf-template-page">
+            <h3>Parámetros de Refrigeración</h3>
+            <table id="pdfRefrigeracionNevera" class="pdf-params-table">
+                <thead>
+                    <tr>
+                        <th>Parámetro</th>
+                        <th>Valor Medido</th>
+                        <th>Rango Normal</th>
+                        <th>Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div class="pdf-notes">
+                <h4>Conclusión y Recomendaciones</h4>
+                <p id="pdfConclusionNevera"></p>
+            </div>
+            <div class="pdf-images-section">
+                <h4>Imágenes del Trabajo</h4>
+                <div id="pdfImagesContainerNevera" class="pdf-images-container"></div>
+            </div>
+            <div class="pdf-footer">
+                <p>Gracias por confiar en nosotros. Este documento fue generado digitalmente. &copy; <span id="pdfCurrentYearNevera"></span> OSCAR OSPINO | CRIOSER SOLUTIONS.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let reviews = [];
+        let settings = {};
+        let selectedImages = [];
+        let currentEditingId = null;
+        let currentType = null;
+        const MAX_IMAGES = 5;
+        let sidebarCollapsed = false;
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            document.querySelectorAll('.sidebar ul li a').forEach(a => a.classList.remove('active'));
+            const link = document.querySelector(`.sidebar ul li a[onclick="showSection('${sectionId}')"]`);
+            if (link) link.classList.add('active');
+        }
+
+        function saveData() {
+            localStorage.setItem('reviews', JSON.stringify(reviews));
+            localStorage.setItem('settings', JSON.stringify(settings));
+        }
+
+        function loadData() {
+            const savedReviews = localStorage.getItem('reviews');
+            const savedSettings = localStorage.getItem('settings');
+            if (savedReviews) reviews = JSON.parse(savedReviews);
+            if (savedSettings) settings = JSON.parse(savedSettings);
+
+            document.getElementById('companyName').value = settings.companyName || 'OSCAR OSPINO | CRIOSER SOLUTIONS';
+            document.getElementById('companyAddress').value = settings.companyAddress || '';
+            document.getElementById('companyPhone').value = settings.companyPhone || '';
+            document.getElementById('companyEmail').value = settings.companyEmail || '';
+            document.getElementById('companyNIT').value = settings.companyNIT || '';
+        }
+
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.classList.add('custom-alert', type);
+            alertDiv.textContent = message;
+            document.body.appendChild(alertDiv);
+
+            setTimeout(() => alertDiv.classList.add('show'), 10);
+            setTimeout(() => {
+                alertDiv.classList.remove('show');
+                setTimeout(() => alertDiv.remove(), 500);
+            }, 3000);
+        }
+
+        function showConfirm(message, callback) {
+            const confirmModal = document.getElementById('customConfirm');
+            const confirmMessage = document.getElementById('confirmMessage');
+            const confirmYes = document.getElementById('confirmYes');
+            const confirmNo = document.getElementById('confirmNo');
+            const overlay = document.getElementById('overlay');
+
+            confirmMessage.textContent = message;
+            overlay.classList.add('show');
+            confirmModal.classList.add('show');
+
+            const yesHandler = () => {
+                callback();
+                closeConfirm();
+            };
+            const noHandler = () => {
+                closeConfirm();
+            };
+
+            confirmYes.addEventListener('click', yesHandler);
+            confirmNo.addEventListener('click', noHandler);
+
+            function closeConfirm() {
+                confirmModal.classList.remove('show');
+                overlay.classList.remove('show');
+                confirmYes.removeEventListener('click', yesHandler);
+                confirmNo.removeEventListener('click', noHandler);
+            }
+        }
+
+        function getFormData(form, type) {
+            const formData = new FormData(form);
+            const data = {};
+
+            // General Info
+            for (const [key, value] of formData.entries()) {
+                if (!key.includes('Medido') && !key.includes('Obs')) {
+                    data[key] = value;
+                }
+            }
+            data.imagesBase64 = type === 'aire' ? selectedImages : document.getElementById('neveraForm').imagesBase64; // Retrieve images for the specific form
+
+            // Electricos and Refrigeracion
+            const electricos = [];
+            const refrigeracion = [];
+
+            const electricosTable = document.getElementById(type === 'aire' ? 'aireElectricos' : 'neveraElectricos');
+            const refrigeracionTable = document.getElementById(type === 'aire' ? 'aireRefrigeracion' : 'neveraRefrigeracion');
+
+            // Process Electricos
+            const electricoInputs = electricosTable.querySelectorAll('tbody tr');
+            electricoInputs.forEach(row => {
+                const param = row.querySelector('td:first-child').textContent.trim();
+                const medidoInput = row.querySelector('input[name*="Medido"]');
+                const obsInput = row.querySelector('input[name*="Obs"]');
+                const normalValue = row.querySelector('td:nth-child(3)').textContent.trim();
+
+                electricos.push({
+                    param: param,
+                    medido: medidoInput ? medidoInput.value : '',
+                    normal: normalValue,
+                    obs: obsInput ? obsInput.value : ''
+                });
+            });
+
+            // Process Refrigeracion
+            const refrigeracionInputs = refrigeracionTable.querySelectorAll('tbody tr');
+            refrigeracionInputs.forEach(row => {
+                const param = row.querySelector('td:first-child').textContent.trim();
+                const medidoInput = row.querySelector('input[name*="Medido"]');
+                const obsInput = row.querySelector('input[name*="Obs"]');
+                const normalValue = row.querySelector('td:nth-child(3)').textContent.trim();
+
+                refrigeracion.push({
+                    param: param,
+                    medido: medidoInput ? medidoInput.value : '',
+                    normal: normalValue,
+                    obs: obsInput ? obsInput.value : ''
+                });
+            });
+
+            data.electrico = electricos;
+            data.refrigeracion = refrigeracion;
+            data.conclusion = document.getElementById(type === 'aire' ? 'conclusion' : 'conclusionNevera').value;
+
+            return data;
+        }
+
+        document.getElementById('aireForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const form = event.target;
+            const reviewData = {
+                id: currentEditingId || Date.now(),
+                type: 'aire',
+                fecha: form.fecha.value,
+                tecnico: form.tecnico.value,
+                cliente: form.cliente.value,
+                direccion: form.direccion.value,
+                telefono: form.telefono.value,
+                marca: form.marca.value,
+                modelo: form.modelo.value,
+                tipo: form.tipo.value,
+                capacidad: form.capacidad.value,
+                electrico: getTableData('aireElectricos'),
+                refrigeracion: getTableData('aireRefrigeracion'),
+                conclusion: form.conclusion.value,
+                imagesBase64: selectedImages.slice() // Copy the images
+            };
+
+            saveReview(reviewData);
+            resetFormAire();
+        });
+
+        document.getElementById('neveraForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const form = event.target;
+            const reviewData = {
+                id: currentEditingId || Date.now(),
+                type: 'nevera',
+                fecha: form.fechaNevera.value,
+                tecnico: form.tecnicoNevera.value,
+                cliente: form.clienteNevera.value,
+                direccion: form.direccionNevera.value,
+                telefono: form.telefonoNevera.value,
+                marca: form.marcaNevera.value,
+                modelo: form.modeloNevera.value,
+                tipo: form.tipoNevera.value,
+                capacidad: form.capacidadNevera.value,
+                electrico: getTableData('neveraElectricos'),
+                refrigeracion: getTableData('neveraRefrigeracion'),
+                conclusion: form.conclusionNevera.value,
+                imagesBase64: document.getElementById('neveraForm').imagesBase64.slice() || [] // Copy the images
+            };
+
+            saveReview(reviewData);
+            resetFormNevera();
+        });
+
+        function getTableData(tableId) {
+            const table = document.getElementById(tableId);
+            const data = [];
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                data.push({
+                    param: row.cells[0].textContent.trim(),
+                    medido: row.querySelector('input[name*="Medido"]').value,
+                    normal: row.cells[2].textContent.trim(),
+                    obs: row.querySelector('input[name*="Obs"]').value,
+                });
+            });
+            return data;
+        }
+
+        function saveReview(reviewData) {
+            if (currentEditingId) {
+                const index = reviews.findIndex(r => r.id === currentEditingId);
+                if (index !== -1) {
+                    reviews[index] = reviewData;
+                    showAlert('Revisión actualizada exitosamente.', 'info');
+                }
+                currentEditingId = null;
+            } else {
+                reviews.push(reviewData);
+                showAlert('Revisión guardada exitosamente.');
+            }
+            saveData();
+            renderReviews();
+            document.querySelector('#createAireSection h2').textContent = 'Diagnóstico de Aire Acondicionado';
+            document.querySelector('#createNeveraSection h2').textContent = 'Diagnóstico de Nevera';
+        }
+
+        function resetFormAire() {
+            document.getElementById('aireForm').reset();
+            currentEditingId = null;
+            selectedImages = [];
+            document.getElementById('imagePreviewsContainer').innerHTML = '';
+            document.querySelector('#createAireSection h2').textContent = 'Diagnóstico de Aire Acondicionado';
+        }
+
+        function resetFormNevera() {
+            document.getElementById('neveraForm').reset();
+            currentEditingId = null;
+            document.getElementById('neveraForm').imagesBase64 = [];
+            document.getElementById('imagePreviewsContainerNevera').innerHTML = '';
+            document.querySelector('#createNeveraSection h2').textContent = 'Diagnóstico de Nevera';
+        }
+
+        function editReview(id, type) {
+            const review = reviews.find(r => r.id === id);
+            if (!review) return;
+
+            currentEditingId = id;
+            showSection(type === 'aire' ? 'createAireSection' : 'createNeveraSection');
+
+            const form = document.getElementById(type === 'aire' ? 'aireForm' : 'neveraForm');
+            form.querySelector(`h2`).textContent = `Editando Revisión de ${type === 'aire' ? 'Aire' : 'Nevera'} (ID: ${id})`;
+
+            // Fill General Info
+            form.querySelector('input[name="fecha"]').value = review.fecha;
+            form.querySelector('input[name="tecnico"]').value = review.tecnico;
+            form.querySelector('input[name="cliente"]').value = review.cliente;
+            form.querySelector('input[name="direccion"]').value = review.direccion;
+            form.querySelector('input[name="telefono"]').value = review.telefono;
+            form.querySelector('input[name="marca"]').value = review.marca;
+            form.querySelector('input[name="modelo"]').value = review.modelo;
+            form.querySelector('input[name="tipo"]').value = review.tipo;
+            form.querySelector('input[name="capacidad"]').value = review.capacidad;
+            form.querySelector('textarea[name="conclusion"]').value = review.conclusion;
+
+            // Fill Tables
+            fillTableInputs(type === 'aire' ? 'aireElectricos' : 'neveraElectricos', review.electrico);
+            fillTableInputs(type === 'aire' ? 'aireRefrigeracion' : 'neveraRefrigeracion', review.refrigeracion);
+
+            // Handle Images
+            if (type === 'aire') {
+                selectedImages = review.imagesBase64 || [];
+                renderImagePreviews(document.getElementById('imagePreviewsContainer'), selectedImages, 'imageUpload');
+            } else {
+                document.getElementById('neveraForm').imagesBase64 = review.imagesBase64 || [];
+                renderImagePreviews(document.getElementById('imagePreviewsContainerNevera'), review.imagesBase64, 'imageUploadNevera');
+            }
+        }
+
+        function fillTableInputs(tableId, data) {
+            const table = document.getElementById(tableId);
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach((row, index) => {
+                if (data[index]) {
+                    row.querySelector('input[name*="Medido"]').value = data[index].medido;
+                    row.querySelector('input[name*="Obs"]').value = data[index].obs;
+                }
+            });
+        }
+
+        function deleteReview(id) {
+            showConfirm('¿Está seguro de que desea eliminar esta revisión? Esta acción no se puede deshacer.', () => {
+                reviews = reviews.filter(r => r.id !== id);
+                saveData();
+                renderReviews();
+                showAlert('Revisión eliminada.', 'error');
+            });
+        }
+
+        function renderReviews() {
+            const tbody = document.getElementById('reviewsTableBody');
+            tbody.innerHTML = '';
+
+            // Sort by date (most recent first)
+            const sortedReviews = [...reviews].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+            sortedReviews.forEach(review => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${review.fecha}</td>
+                    <td>${review.type === 'aire' ? 'Aire Acondicionado' : 'Nevera'}</td>
+                    <td>${review.cliente}</td>
+                    <td>${review.tecnico}</td>
+                    <td>${review.marca} / ${review.modelo}</td>
+                    <td class="actions">
+                        <button class="btn" style="background-color: var(--info-color);" onclick="editReview(${review.id}, '${review.type}')"><i class="fas fa-edit"></i></button>
+                        <button class="btn" style="background-color: var(--success-color);" onclick="generatePdf${review.type.charAt(0).toUpperCase() + review.type.slice(1)}(${review.id})"><i class="fas fa-file-pdf"></i></button>
+                        <button class="btn" style="background-color: var(--error-color);" onclick="deleteReview(${review.id})"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+            });
+        }
+
+        function filterReviews() {
+            const filter = document.getElementById('search').value.toUpperCase();
+            const rows = document.getElementById('reviewsTableBody').querySelectorAll('tr');
+
+            rows.forEach(row => {
+                const textContent = row.textContent.toUpperCase();
+                if (textContent.indexOf(filter) > -1) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        }
+
+        // --- PDF Generation Logic ---
+
+        // Función renombrada y modificada para llenar las dos plantillas de página
+        function fillPdfTemplates(templateType, reviewData) {
+            const prefix = templateType === 'aire' ? 'Aire' : 'Nevera';
+            const tableElectricos = document.getElementById(`pdfElectricos${prefix}`).querySelector('tbody');
+            const tableRefrigeracion = document.getElementById(`pdfRefrigeracion${prefix}`).querySelector('tbody');
+
+            // 1. General Company Info (Va en Página 1)
+            document.getElementById(`pdfHeaderCompanyName${prefix}`).textContent = settings.companyName || 'OSCAR OSPINO | CRIOSER SOLUTIONS';
+            document.getElementById(`pdfCompanyAddress${prefix}`).textContent = settings.companyAddress || 'N/A';
+            document.getElementById(`pdfCompanyPhone${prefix}`).textContent = `Teléfono: ${settings.companyPhone || 'N/A'}`;
+            document.getElementById(`pdfCompanyEmail${prefix}`).textContent = `Email: ${settings.companyEmail || 'N/A'}`;
+            
+            // Asignación de NIT a los IDs específicos de cada template (Page 1)
+            const nitId = prefix === 'Aire' ? 'pdfCompanyNITAire' : 'pdfCompanyNITAvera';
+            document.getElementById(nitId).textContent = `NIT: ${settings.companyNIT || 'N/A'}`;
+            
+            const logoElement = document.getElementById(`pdfCompanyLogo${prefix}`);
+            if (settings.companyLogoBase64) {
+                logoElement.src = settings.companyLogoBase64;
+                logoElement.style.display = 'block';
+            } else {
+                logoElement.src = templateType === 'aire' ? 'LogoAire.png' : 'LogoNevera.jpg';
+            }
+
+            // 2. Review Details (Va en Página 1)
+            document.getElementById(`pdfCliente${prefix}`).textContent = reviewData.cliente;
+            document.getElementById(`pdfDireccion${prefix}`).textContent = reviewData.direccion;
+            document.getElementById(`pdfTelefono${prefix}`).textContent = reviewData.telefono;
+            document.getElementById(`pdfFecha${prefix}`).textContent = reviewData.fecha;
+            document.getElementById(`pdfTecnico${prefix}`).textContent = reviewData.tecnico;
+            document.getElementById(`pdfMarca${prefix}`).textContent = reviewData.marca;
+            document.getElementById(`pdfModelo${prefix}`).textContent = reviewData.modelo;
+            document.getElementById(`pdfTipo${prefix}`).textContent = reviewData.tipo;
+            document.getElementById(`pdfCapacidad${prefix}`).textContent = reviewData.capacidad;
+
+            // 3. Tables - Electricos (Página 1)
+            tableElectricos.innerHTML = '';
+            reviewData.electrico.forEach(item => {
+                tableElectricos.innerHTML += `
+                    <tr>
+                        <td>${item.param}</td>
+                        <td>${item.medido}</td>
+                        <td>${item.normal}</td>
+                        <td>${item.obs}</td>
+                    </tr>
+                `;
+            });
+
+            // 4. Tables - Refrigeracion (Página 2)
+            tableRefrigeracion.innerHTML = '';
+            reviewData.refrigeracion.forEach(item => {
+                tableRefrigeracion.innerHTML += `
+                    <tr>
+                        <td>${item.param}</td>
+                        <td>${item.medido}</td>
+                        <td>${item.normal}</td>
+                        <td>${item.obs}</td>
+                    </tr>
+                `;
+            });
+
+            // 5. Conclusion (Página 2)
+            document.getElementById(`pdfConclusion${prefix}`).textContent = reviewData.conclusion;
+
+            // 6. Images (Página 2)
+            const imagesContainer = document.getElementById(`pdfImagesContainer${prefix}`);
+            imagesContainer.innerHTML = '';
+            (reviewData.imagesBase64 || []).forEach(base64Image => {
+                imagesContainer.innerHTML += `<img src="${base64Image}" alt="Imagen del trabajo">`;
+            });
+
+            // 7. Footer Year (Página 2)
+            document.getElementById(`pdfCurrentYear${prefix}`).textContent = new Date().getFullYear();
+        }
+
+        // =========================================================================
+        // FUNCIÓN CORREGIDA PARA 2 PÁGINAS: generatePdfAire
+        // =========================================================================
+        async function generatePdfAire(reviewId = null) {
+            let reviewData;
+            if (reviewId) {
+                reviewData = reviews.find(r => r.id === reviewId && r.type === 'aire');
+            } else {
+                const form = document.getElementById('aireForm');
+                reviewData = {
+                    id: Date.now(),
+                    type: 'aire',
+                    fecha: form.fecha.value,
+                    tecnico: form.tecnico.value,
+                    cliente: form.cliente.value,
+                    direccion: form.direccion.value,
+                    telefono: form.telefono.value,
+                    marca: form.marca.value,
+                    modelo: form.modelo.value,
+                    tipo: form.tipo.value,
+                    capacidad: form.capacidad.value,
+                    electrico: getTableData('aireElectricos'),
+                    refrigeracion: getTableData('aireRefrigeracion'),
+                    conclusion: form.conclusion.value,
+                    imagesBase64: selectedImages.slice()
+                };
+            }
+
+            if (!reviewData || !reviewData.cliente || !reviewData.tecnico) {
+                showAlert('Por favor, complete los campos obligatorios antes de generar el PDF.', 'error');
+                return;
+            }
+
+            if (!settings.companyLogoBase64 && !confirm('Advertencia: El logo de la empresa no está configurado. ¿Desea continuar sin él?')) {
+                return;
+            }
+
+            // Llenar ambas plantillas de página
+            fillPdfTemplates('aire', reviewData);
+
+            const pdfTemplatePage1 = document.getElementById('pdfTemplateAirePage1');
+            const pdfTemplatePage2 = document.getElementById('pdfTemplateAirePage2');
+
+            // Hacer visibles ambas páginas para la captura
+            pdfTemplatePage1.style.display = 'block'; 
+            pdfTemplatePage2.style.display = 'block'; 
+
+            try {
+                const jsPDF = window.jspdf.jsPDF; 
+                const doc = new jsPDF('p', 'pt', 'a4');
+                const imgWidth = 595; // Ancho A4 en puntos
+
+                // --- CAPTURA Y ADICIÓN DE PÁGINA 1 ---
+                const canvas1 = await html2canvas(pdfTemplatePage1, {
+                    scale: 3, 
+                    logging: false,
+                    useCORS: true,
+                    scrollY: -window.scrollY
+                });
+                const imgData1 = canvas1.toDataURL('image/png');
+                const imgHeight1 = (canvas1.height * imgWidth) / canvas1.width;
+                doc.addImage(imgData1, 'PNG', 0, 0, imgWidth, imgHeight1);
+
+                // --- CAPTURA Y ADICIÓN DE PÁGINA 2 ---
+                doc.addPage(); // Forzar salto de página
+
+                const canvas2 = await html2canvas(pdfTemplatePage2, {
+                    scale: 3,
+                    logging: false,
+                    useCORS: true,
+                    scrollY: -window.scrollY
+                });
+                const imgData2 = canvas2.toDataURL('image/png');
+                const imgHeight2 = (canvas2.height * imgWidth) / canvas2.width;
+                doc.addImage(imgData2, 'PNG', 0, 0, imgWidth, imgHeight2);
+
+                doc.save(`Revision_Aire_${reviewData.cliente.replace(/ /g, '_')}_${reviewData.fecha}.pdf`);
+                showAlert('PDF generado exitosamente.');
+                
+            } catch (error) {
+                console.error('Error al generar el PDF:', error);
+                showAlert(`Error al generar el PDF. Revise la consola para detalles. (${error.message})`, 'error');
+            } finally {
+                // Ocultar ambas plantillas al finalizar
+                pdfTemplatePage1.style.display = 'none'; 
+                pdfTemplatePage2.style.display = 'none'; 
+            }
+        }
+
+        // =========================================================================
+        // FUNCIÓN CORREGIDA PARA 2 PÁGINAS: generatePdfNevera
+        // =========================================================================
+        async function generatePdfNevera(reviewId = null) {
+            let reviewData;
+            if (reviewId) {
+                reviewData = reviews.find(r => r.id === reviewId && r.type === 'nevera');
+            } else {
+                const form = document.getElementById('neveraForm');
+                reviewData = {
+                    id: Date.now(),
+                    type: 'nevera',
+                    fecha: form.fechaNevera.value,
+                    tecnico: form.tecnicoNevera.value,
+                    cliente: form.clienteNevera.value,
+                    direccion: form.direccionNevera.value,
+                    telefono: form.telefonoNevera.value,
+                    marca: form.marcaNevera.value,
+                    modelo: form.modeloNevera.value,
+                    tipo: form.tipoNevera.value,
+                    capacidad: form.capacidadNevera.value,
+                    electrico: getTableData('neveraElectricos'),
+                    refrigeracion: getTableData('neveraRefrigeracion'),
+                    conclusion: form.conclusionNevera.value,
+                    imagesBase64: document.getElementById('neveraForm').imagesBase64.slice() || []
+                };
+            }
+
+            if (!reviewData || !reviewData.cliente || !reviewData.tecnico) {
+                showAlert('Por favor, complete los campos obligatorios antes de generar el PDF.', 'error');
+                return;
+            }
+
+            if (!settings.companyLogoBase64 && !confirm('Advertencia: El logo de la empresa no está configurado. ¿Desea continuar sin él?')) {
+                return;
+            }
+
+            // Llenar ambas plantillas de página
+            fillPdfTemplates('nevera', reviewData);
+
+            const pdfTemplatePage1 = document.getElementById('pdfTemplateNeveraPage1');
+            const pdfTemplatePage2 = document.getElementById('pdfTemplateNeveraPage2');
+
+            // Hacer visibles ambas páginas para la captura
+            pdfTemplatePage1.style.display = 'block';
+            pdfTemplatePage2.style.display = 'block';
+
+            try {
+                const jsPDF = window.jspdf.jsPDF; 
+                const doc = new jsPDF('p', 'pt', 'a4');
+                const imgWidth = 595;
+
+                // --- CAPTURA Y ADICIÓN DE PÁGINA 1 ---
+                const canvas1 = await html2canvas(pdfTemplatePage1, {
+                    scale: 3,
+                    logging: false,
+                    useCORS: true,
+                    scrollY: -window.scrollY
+                });
+                const imgData1 = canvas1.toDataURL('image/png');
+                const imgHeight1 = (canvas1.height * imgWidth) / canvas1.width;
+                doc.addImage(imgData1, 'PNG', 0, 0, imgWidth, imgHeight1);
+
+                // --- CAPTURA Y ADICIÓN DE PÁGINA 2 ---
+                doc.addPage(); // Forzar salto de página
+
+                const canvas2 = await html2canvas(pdfTemplatePage2, {
+                    scale: 3,
+                    logging: false,
+                    useCORS: true,
+                    scrollY: -window.scrollY
+                });
+                const imgData2 = canvas2.toDataURL('image/png');
+                const imgHeight2 = (canvas2.height * imgWidth) / canvas2.width;
+                doc.addImage(imgData2, 'PNG', 0, 0, imgWidth, imgHeight2);
+
+                doc.save(`Revision_Nevera_${reviewData.cliente.replace(/ /g, '_')}_${reviewData.fecha}.pdf`);
+                showAlert('PDF generado exitosamente.');
+                
+            } catch (error) {
+                console.error('Error al generar el PDF:', error);
+                showAlert(`Error al generar el PDF. Revise la consola para detalles. (${error.message})`, 'error');
+            } finally {
+                // Ocultar ambas plantillas al finalizar
+                pdfTemplatePage1.style.display = 'none';
+                pdfTemplatePage2.style.display = 'none';
+            }
+        }
+
+
+        // --- Image Handling Logic ---
+
+        function handleImageUpload(event, containerId, imageList) {
+            const files = Array.from(event.target.files);
+            const container = document.getElementById(containerId);
+
+            files.forEach(file => {
+                if (imageList.length < MAX_IMAGES && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        imageList.push(e.target.result);
+                        renderImagePreviews(container, imageList, event.target.id);
+                    };
+                    reader.readAsDataURL(file);
+                } else if (imageList.length >= MAX_IMAGES) {
+                    showAlert(`Solo se permiten un máximo de ${MAX_IMAGES} imágenes.`, 'warning');
+                }
+            });
+
+            // Clear the file input after processing
+            event.target.value = ''; 
+        }
+
+        function renderImagePreviews(container, imageList, inputId) {
+            container.innerHTML = '';
+            imageList.forEach((imageBase64, index) => {
+                const item = document.createElement('div');
+                item.classList.add('image-preview-item');
+                item.innerHTML = `
+                    <img src="${imageBase64}" alt="Preview ${index + 1}">
+                    <button class="remove-image-btn" onclick="removeImage('${inputId}', ${index})"><i class="fas fa-times"></i></button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function removeImage(inputId, index) {
+            let imageList;
+            let container;
+
+            if (inputId === 'imageUpload') {
+                imageList = selectedImages;
+                container = document.getElementById('imagePreviewsContainer');
+            } else if (inputId === 'imageUploadNevera') {
+                // For the Nevera form, we store images on the form object itself
+                imageList = document.getElementById('neveraForm').imagesBase64;
+                container = document.getElementById('imagePreviewsContainerNevera');
+            } else {
+                return;
+            }
+
+            imageList.splice(index, 1);
+            renderImagePreviews(container, imageList, inputId);
+        }
+
+        // Initialize form-specific image storage
+        document.getElementById('neveraForm').imagesBase64 = [];
+
+        // Attach image upload listeners
+        document.getElementById('imageUpload').addEventListener('change', (e) => handleImageUpload(e, 'imagePreviewsContainer', selectedImages));
+        document.getElementById('imageUploadNevera').addEventListener('change', (e) => handleImageUpload(e, 'imagePreviewsContainerNevera', document.getElementById('neveraForm').imagesBase64));
+
+        // --- Settings Logic ---
+
+        document.getElementById('settingsForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const form = event.target;
+            settings.companyName = form.companyName.value;
+            settings.companyAddress = form.companyAddress.value;
+            settings.companyPhone = form.companyPhone.value;
+            settings.companyEmail = form.companyEmail.value;
+            settings.companyNIT = form.companyNIT.value;
+            saveData();
+            showAlert('Ajustes guardados exitosamente.');
+        });
+
+        document.getElementById('companyLogo').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    settings.companyLogoBase64 = e.target.result;
+                    const preview = document.getElementById('logoPreview');
+                    preview.innerHTML = `<img src="${e.target.result}" alt="Logo Preview" style="max-width: 150px;">`;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                showAlert('Solo se permiten archivos de imagen.', 'error');
+            }
+        });
+
+        // Sidebar Toggle
+        document.getElementById('sidebarToggle').addEventListener('click', () => {
+            sidebarCollapsed = !sidebarCollapsed;
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const toggleIcon = document.getElementById('sidebarToggle').querySelector('i');
+            if (sidebarCollapsed) {
+                sidebar.classList.add('collapsed');
+                mainContent.classList.add('expanded');
+                toggleIcon.classList.replace('fa-chevron-left', 'fa-chevron-right');
+            } else {
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('expanded');
+                toggleIcon.classList.replace('fa-chevron-right', 'fa-chevron-left');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            renderReviews();
+            document.getElementById('fecha').valueAsDate = new Date();
+            document.getElementById('fechaNevera').valueAsDate = new Date();
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+            if (settings.companyLogoBase64) {
+                document.getElementById('logoPreview').innerHTML = `<img src="${settings.companyLogoBase64}" alt="Logo Preview" style="max-width: 150px;">`;
+            }
+        });
+    </script>
+</body>
+</html>
