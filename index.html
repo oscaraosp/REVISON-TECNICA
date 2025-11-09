@@ -713,6 +713,35 @@
         .image-preview-item .remove-image-btn:hover {
             background-color: rgba(0,0,0,0.7);
         }
+        
+        /* Modal Style for Guía de Medición */
+        .measurement-modal {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(96, 108, 128, 0.9); /* Darker overlay */
+            z-index: 50;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .measurement-modal-content {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 600px; /* Adjusted size */
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.95);
+            transition: transform 0.3s ease-out;
+        }
+        
+        .measurement-modal-content.show {
+             transform: scale(1);
+        }
+
     </style>
 </head>
 <body>
@@ -774,8 +803,12 @@
                     <input type="text" id="direccion" name="direccion" required>
                 </div>
                 <div class="form-group">
-                    <label for="telefono">Teléfono</label>
+                    <label for="telefono">Teléfono (General)</label>
                     <input type="text" id="telefono" name="telefono" required>
+                </div>
+                <div class="form-group">
+                    <label for="telefonoCliente">Teléfono Cliente (WhatsApp)</label>
+                    <input type="tel" id="telefonoCliente" name="telefonoCliente" placeholder="Ej: 573101234567" required>
                 </div>
                 <div class="form-group">
                     <label for="marca">Marca</label>
@@ -794,7 +827,7 @@
                     <input type="text" id="capacidad" name="capacidad" required>
                 </div>
 
-                <h3>Parámetros Eléctricos</h3>
+                <h3>Parámetros Eléctricos <button type="button" class="btn-secondary btn-sm" id="openGuideBtnAir" style="font-size: 0.8em;"><i class="fas fa-book"></i> Guía de Medición</button></h3>
                 <table class="param-table" id="aireElectricos">
                     <thead>
                         <tr>
@@ -864,19 +897,31 @@
                         <tr>
                             <td>Temperatura de succión (°C)</td>
                             <td><input type="text" name="succTempMedido"></td>
-                            <td>5–10</td>
+                            <td>5–10°C (aprox.)</td>
                             <td><input type="text" name="succTempObs"></td>
                         </tr>
                         <tr>
                             <td>Temperatura de descarga (°C)</td>
                             <td><input type="text" name="descTempMedido"></td>
-                            <td>70–90</td>
+                            <td>65–90°C (aprox.)</td>
                             <td><input type="text" name="descTempObs"></td>
                         </tr>
                         <tr>
-                            <td>∆T (diferencia entrada-salida)</td>
+                            <td>Supercalentamiento (SH) (°C)</td>
+                            <td><input type="text" name="shMedido"></td>
+                            <td>4–7°C</td>
+                            <td><input type="text" name="shObs"></td>
+                        </tr>
+                        <tr>
+                            <td>Subenfriamiento (SC) (°C)</td>
+                            <td><input type="text" name="scMedido"></td>
+                            <td>3–6°C</td>
+                            <td><input type="text" name="scObs"></td>
+                        </tr>
+                        <tr>
+                            <td>∆T (Temp. Entrada-Salida) (°C)</td>
                             <td><input type="text" name="deltaTMedido"></td>
-                            <td>8–12</td>
+                            <td>8–12°C</td>
                             <td><input type="text" name="deltaTObs"></td>
                         </tr>
                     </tbody>
@@ -884,25 +929,26 @@
 
                 <div class="form-group">
                     <label for="conclusion">Conclusión y Recomendaciones</label>
-                    <textarea id="conclusion" name="conclusion"></textarea>
+                    <textarea id="conclusion" name="conclusion" rows="5"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="imageUpload">Adjuntar Imágenes (máx. 5)</label>
-                    <input type="file" id="imageUpload" multiple accept="image/*">
-                    <div id="imagePreviewsContainer" class="image-preview-container"></div>
+                    <label for="imageUpload">Adjuntar Imágenes (Max 5)</label>
+                    <input type="file" id="imageUpload" name="imageUpload" accept="image/*" multiple onchange="handleImageUpload(event, 'imagePreviewsContainer', selectedImages)">
+                    <div class="image-preview-container" id="imagePreviewsContainer">
+                        </div>
                 </div>
 
                 <div class="button-group">
-                    <button type="submit" class="btn">Guardar Revisión</button>
-                    <button type="button" class="btn" onclick="generatePdfAire(null)">Generar PDF</button>
-                    <button type="button" class="btn btn-secondary" onclick="resetFormAire()">Limpiar</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetFormAire()"><i class="fas fa-eraser"></i> Limpiar</button>
+                    <button type="submit" class="btn"><i class="fas fa-save"></i> Guardar Revisión</button>
+                    <button type="button" class="btn" style="background-color: var(--info-color);" onclick="generatePDF('aire')"><i class="fas fa-file-pdf"></i> Generar PDF y Enviar</button>
                 </div>
             </form>
         </section>
 
         <section id="createNeveraSection" class="section">
-            <h2>Diagnóstico de Nevera</h2>
+            <h2>Diagnóstico de Nevera/Refrigerador</h2>
             <form id="neveraForm">
                 <div class="form-group">
                     <label for="fechaNevera">Fecha</label>
@@ -921,8 +967,12 @@
                     <input type="text" id="direccionNevera" name="direccion" required>
                 </div>
                 <div class="form-group">
-                    <label for="telefonoNevera">Teléfono</label>
+                    <label for="telefonoNevera">Teléfono (General)</label>
                     <input type="text" id="telefonoNevera" name="telefono" required>
+                </div>
+                <div class="form-group">
+                    <label for="telefonoClienteNevera">Teléfono Cliente (WhatsApp)</label>
+                    <input type="tel" id="telefonoClienteNevera" name="telefonoCliente" placeholder="Ej: 573101234567" required>
                 </div>
                 <div class="form-group">
                     <label for="marcaNevera">Marca</label>
@@ -941,7 +991,7 @@
                     <input type="text" id="capacidadNevera" name="capacidad" required>
                 </div>
 
-                <h3>Parámetros Eléctricos</h3>
+                <h3>Parámetros Eléctricos <button type="button" class="btn-secondary btn-sm" id="openGuideBtnFridge" style="font-size: 0.8em;"><i class="fas fa-book"></i> Guía de Medición</button></h3>
                 <table class="param-table" id="neveraElectricos">
                     <thead>
                         <tr>
@@ -1011,56 +1061,76 @@
                         <tr>
                             <td>Temp. evaporador (°C)</td>
                             <td><input type="text" name="evapTempMedido"></td>
-                            <td>-18 a -25</td>
+                            <td>-18°C a -25°C</td>
                             <td><input type="text" name="evapTempObs"></td>
                         </tr>
                         <tr>
-                            <td>Temp. condensador (°C)</td>
-                            <td><input type="text" name="condTempMedido"></td>
-                            <td>45–60</td>
-                            <td><input type="text" name="condTempObs"></td>
+                            <td>Temp. congelador (°C)</td>
+                            <td><input type="text" name="congeladorTempMedido"></td>
+                            <td>-18°C a 0°C</td>
+                            <td><input type="text" name="congeladorTempObs"></td>
+                        </tr>
+                        <tr>
+                            <td>Temp. conservador (°C)</td>
+                            <td><input type="text" name="conservadorTempMedido"></td>
+                            <td>2°C a 5°C</td>
+                            <td><input type="text" name="conservadorTempObs"></td>
+                        </tr>
+                        <tr>
+                            <td>Supercalentamiento (SH) (°C)</td>
+                            <td><input type="text" name="shMedido"></td>
+                            <td>4–7°C</td>
+                            <td><input type="text" name="shObs"></td>
+                        </tr>
+                        <tr>
+                            <td>Subenfriamiento (SC) (°C)</td>
+                            <td><input type="text" name="scMedido"></td>
+                            <td>3–6°C</td>
+                            <td><input type="text" name="scObs"></td>
                         </tr>
                     </tbody>
                 </table>
 
                 <div class="form-group">
                     <label for="conclusionNevera">Conclusión y Recomendaciones</label>
-                    <textarea id="conclusionNevera" name="conclusion"></textarea>
+                    <textarea id="conclusionNevera" name="conclusion" rows="5"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="imageUploadNevera">Adjuntar Imágenes (máx. 5)</label>
-                    <input type="file" id="imageUploadNevera" multiple accept="image/*">
-                    <div id="imagePreviewsContainerNevera" class="image-preview-container"></div>
+                    <label for="imageUploadNevera">Adjuntar Imágenes (Max 5)</label>
+                    <input type="file" id="imageUploadNevera" name="imageUpload" accept="image/*" multiple onchange="handleImageUpload(event, 'imagePreviewsContainerNevera', document.getElementById('neveraForm').imagesBase64)">
+                    <div class="image-preview-container" id="imagePreviewsContainerNevera">
+                        </div>
                 </div>
 
                 <div class="button-group">
-                    <button type="submit" class="btn">Guardar Revisión</button>
-                    <button type="button" class="btn" onclick="generatePdfNevera(null)">Generar PDF</button>
-                    <button type="button" class="btn btn-secondary" onclick="resetFormNevera()">Limpiar</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetFormNevera()"><i class="fas fa-eraser"></i> Limpiar</button>
+                    <button type="submit" class="btn"><i class="fas fa-save"></i> Guardar Revisión</button>
+                    <button type="button" class="btn" style="background-color: var(--info-color);" onclick="generatePDF('nevera')"><i class="fas fa-file-pdf"></i> Generar PDF y Enviar</button>
                 </div>
             </form>
         </section>
 
         <section id="manageSection" class="section">
-            <h2>Gestionar Revisiones</h2>
+            <h2>Gestionar Documentos</h2>
             <div class="form-group">
-                <label for="search">Buscar por Cliente o Fecha</label>
-                <input type="text" id="search" onkeyup="filterReviews()">
+                <input type="text" id="search" onkeyup="filterReviews()" placeholder="Buscar por cliente, marca o técnico...">
             </div>
             <div class="review-table-container">
                 <table class="review-table">
                     <thead>
                         <tr>
-                            <th>Fecha</th>
+                            <th>ID</th>
                             <th>Tipo</th>
+                            <th>Fecha</th>
                             <th>Cliente</th>
                             <th>Técnico</th>
-                            <th>Marca/Modelo</th>
+                            <th>Equipo</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody id="reviewsTableBody"></tbody>
+                    <tbody id="reviewsTableBody">
+                        </tbody>
                 </table>
             </div>
         </section>
@@ -1070,7 +1140,7 @@
             <form id="settingsForm">
                 <div class="form-group">
                     <label for="companyName">Nombre de la Empresa</label>
-                    <input type="text" id="companyName" name="companyName" value="OSCAR OSPINO | CRIOSER SOLUTIONS">
+                    <input type="text" id="companyName" name="companyName" required>
                 </div>
                 <div class="form-group">
                     <label for="companyAddress">Dirección</label>
@@ -1082,27 +1152,36 @@
                 </div>
                 <div class="form-group">
                     <label for="companyEmail">Email</label>
-                    <input type="text" id="companyEmail" name="companyEmail">
+                    <input type="email" id="companyEmail" name="companyEmail">
                 </div>
                 <div class="form-group">
-                    <label for="companyNIT">NIT</label>
+                    <label for="companyNIT">Código Empresarial / NIT</label>
                     <input type="text" id="companyNIT" name="companyNIT">
                 </div>
                 <div class="form-group">
-                    <label for="companyLogo">Logo de la Empresa</label>
-                    <input type="file" id="companyLogo" accept="image/*">
-                    <div id="logoPreview"></div>
+                    <label for="logoUpload">Logo de la Empresa</label>
+                    <input type="file" id="logoUpload" name="logoUpload" accept="image/*" onchange="handleLogoUpload(event)">
+                    <div id="logoPreview" style="margin-top: 10px;">
+                        </div>
                 </div>
                 <div class="button-group">
-                    <button type="submit" class="btn">Guardar Ajustes</button>
+                    <button type="submit" class="btn"><i class="fas fa-save"></i> Guardar Ajustes</button>
                 </div>
             </form>
+
+            <h2 style="margin-top: 40px;">Gestión de Datos</h2>
+            <div class="button-group" style="justify-content: flex-start;">
+                <button type="button" class="btn btn-secondary" onclick="exportData()"><i class="fas fa-download"></i> Exportar Datos</button>
+                <button type="button" class="btn" style="background-color: var(--error-color);" onclick="confirmAction('¿Está seguro de que desea eliminar TODAS las revisiones guardadas? Esta acción es irreversible.', clearAllData)"><i class="fas fa-trash"></i> Eliminar Todas</button>
+            </div>
         </section>
 
         <footer>
-            <p>&copy; <span id="currentYear"></span> OSCAR OSPINO | CRIOSER SOLUTIONS. Todos los derechos reservados.</p>
+            &copy; <span id="currentYear"></span> OSCAR OSPINO | CRIOSER SOLUTIONS. Todos los derechos reservados.
         </footer>
+    </div>
 
+    <div id="pdfTemplatesContainer" style="position: absolute; left: -9999px;">
         <div id="pdfTemplateAirePage1" class="pdf-template-page">
             <div class="pdf-header">
                 <div class="pdf-header-info">
@@ -1110,7 +1189,7 @@
                     <p id="pdfCompanyAddressAire">Dirección de la Empresa</p>
                     <p id="pdfCompanyPhoneAire">Teléfono: (XXX) XXX-XXXX</p>
                     <p id="pdfCompanyEmailAire">Email: tu_correo@empresa.com</p>
-                    <p id="pdfCompanyNITAire">NIT: XXX.XXX.XXX-X</p>
+                    <p id="pdfCompanyNITAire">Código Empresarial: XXX.XXX.XXX-X</p>
                 </div>
                 <img id="pdfCompanyLogoAire" src="" alt="Logo">
             </div>
@@ -1120,6 +1199,7 @@
                     <p><strong>Cliente:</strong> <span id="pdfClienteAire"></span></p>
                     <p><strong>Dirección:</strong> <span id="pdfDireccionAire"></span></p>
                     <p><strong>Teléfono:</strong> <span id="pdfTelefonoAire"></span></p>
+                    <p><strong>Teléfono (WhatsApp):</strong> <span id="pdfTelefonoClienteAire"></span></p>
                 </div>
                 <div>
                     <h3>Información de la Revisión</h3>
@@ -1146,7 +1226,7 @@
         </div>
 
         <div id="pdfTemplateAirePage2" class="pdf-template-page">
-            <h3>Parámetros de Refrigeración</h3>
+            <div class="pdf-header" style="opacity: 0;"></div> <h3>Parámetros de Refrigeración</h3>
             <table id="pdfRefrigeracionAire" class="pdf-params-table">
                 <thead>
                     <tr>
@@ -1158,16 +1238,18 @@
                 </thead>
                 <tbody></tbody>
             </table>
-            <div class="pdf-notes">
-                <h4>Conclusión y Recomendaciones</h4>
-                <p id="pdfConclusionAire"></p>
-            </div>
+            
+            <h3>Conclusión y Recomendaciones</h3>
+            <div class="pdf-notes" id="pdfConclusionAire"></div>
+
             <div class="pdf-images-section">
-                <h4>Imágenes del Trabajo</h4>
-                <div id="pdfImagesContainerAire" class="pdf-images-container"></div>
+                <h4>Imágenes de la Revisión</h4>
+                <div class="pdf-images-container" id="pdfImagesAire">
+                    </div>
             </div>
+
             <div class="pdf-footer">
-                <p>Gracias por confiar en nosotros. Este documento fue generado digitalmente. &copy; <span id="pdfCurrentYearAire"></span> OSCAR OSPINO | CRIOSER SOLUTIONS.</p>
+                Documento generado digitalmente por CRIOSER SOLUTIONS. Consulte la versión original para validación.
             </div>
         </div>
 
@@ -1178,7 +1260,7 @@
                     <p id="pdfCompanyAddressNevera">Dirección de la Empresa</p>
                     <p id="pdfCompanyPhoneNevera">Teléfono: (XXX) XXX-XXXX</p>
                     <p id="pdfCompanyEmailNevera">Email: tu_correo@empresa.com</p>
-                    <p id="pdfCompanyNITAvera">NIT: XXX.XXX.XXX-X</p>
+                    <p id="pdfCompanyNITNevera">Código Empresarial: XXX.XXX.XXX-X</p>
                 </div>
                 <img id="pdfCompanyLogoNevera" src="" alt="Logo">
             </div>
@@ -1188,6 +1270,7 @@
                     <p><strong>Cliente:</strong> <span id="pdfClienteNevera"></span></p>
                     <p><strong>Dirección:</strong> <span id="pdfDireccionNevera"></span></p>
                     <p><strong>Teléfono:</strong> <span id="pdfTelefonoNevera"></span></p>
+                    <p><strong>Teléfono (WhatsApp):</strong> <span id="pdfTelefonoClienteNevera"></span></p>
                 </div>
                 <div>
                     <h3>Información de la Revisión</h3>
@@ -1214,7 +1297,7 @@
         </div>
 
         <div id="pdfTemplateNeveraPage2" class="pdf-template-page">
-            <h3>Parámetros de Refrigeración</h3>
+            <div class="pdf-header" style="opacity: 0;"></div> <h3>Parámetros de Refrigeración</h3>
             <table id="pdfRefrigeracionNevera" class="pdf-params-table">
                 <thead>
                     <tr>
@@ -1226,20 +1309,86 @@
                 </thead>
                 <tbody></tbody>
             </table>
-            <div class="pdf-notes">
-                <h4>Conclusión y Recomendaciones</h4>
-                <p id="pdfConclusionNevera"></p>
-            </div>
+            
+            <h3>Conclusión y Recomendaciones</h3>
+            <div class="pdf-notes" id="pdfConclusionNevera"></div>
+
             <div class="pdf-images-section">
-                <h4>Imágenes del Trabajo</h4>
-                <div id="pdfImagesContainerNevera" class="pdf-images-container"></div>
+                <h4>Imágenes de la Revisión</h4>
+                <div class="pdf-images-container" id="pdfImagesNevera">
+                    </div>
             </div>
+
             <div class="pdf-footer">
-                <p>Gracias por confiar en nosotros. Este documento fue generado digitalmente. &copy; <span id="pdfCurrentYearNevera"></span> OSCAR OSPINO | CRIOSER SOLUTIONS.</p>
+                Documento generado digitalmente por CRIOSER SOLUTIONS. Consulte la versión original para validación.
             </div>
         </div>
     </div>
 
+    <div id="guideModal" class="measurement-modal">
+        <div class="measurement-modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 20px 0;">
+                <h3 style="color: var(--primary-color); margin: 0;"><i class="fas fa-book-open"></i> Guía de Medición Rápida</h3>
+                <button id="closeGuideModal" style="font-size: 2rem; border: none; background: none; cursor: pointer; color: var(--accent-color);">&times;</button>
+            </div>
+            
+            <div style="line-height: 1.6; color: var(--text-color); padding: 0 20px 20px;">
+                
+                <h3 style="color: var(--primary-color); font-size: 1.3em; margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px;"><i class="fas fa-bolt"></i> Parámetros Eléctricos (Pinza Voltiamperimétrica)</h3>
+                
+                <h4 style="font-size: 1.1em; color: #00008B; margin-top: 15px;">1. Voltaje de alimentación (V)</h4>
+                <ul style="list-style: disc; margin-left: 25px;">
+                    <li><strong>Herramienta:</strong> Pinza Voltiamperimétrica (Función Voltímetro).</li>
+                    <li><strong>Ubicación:</strong> Bornes de entrada de energía del equipo.</li>
+                    <li><strong>Procedimiento:</strong> Conecte las puntas de prueba en <strong>paralelo</strong> (Línea-Neutro o L1-L2). Mida <strong>mientras el equipo opera</strong> (bajo carga).</li>
+                    <li><strong>Precisión:</strong> El valor debe ser <strong>estable</strong> y encontrarse dentro del <strong>+/-10%</strong> del voltaje nominal.</li>
+                </ul>
+
+                <h4 style="font-size: 1.1em; color: #00008B; margin-top: 15px;">2. Corriente (Total, Compresor, Ventiladores) (A)</h4>
+                <ul style="list-style: disc; margin-left: 25px;">
+                    <li><strong>Herramienta:</strong> Pinza Voltiamperimétrica (Función Amperímetro).</li>
+                    <li><strong>Ubicación:</strong> Cables individuales de cada componente.</li>
+                    <li><strong>Procedimiento:</strong> Coloque la pinza <strong>alrededor de un solo conductor (Fase)</strong> del componente a medir. Mida la corriente <strong>después de 10-15 minutos</strong> de operación (régimen estable).</li>
+                    <li><strong>Precisión:</strong> El valor del compresor debe ser igual o ligeramente inferior al RLA (Rated Load Amps) de la placa. La corriente total es la suma vectorial de todos los componentes.</li>
+                </ul>
+
+                <h3 style="color: var(--primary-color); font-size: 1.3em; margin-top: 25px; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px;"><i class="fas fa-temperature-three-quarters"></i> Parámetros de Refrigeración y Temperatura</h3>
+
+                <h4 style="font-size: 1.1em; color: #00008B; margin-top: 15px;">3. Presión de Succión y Descarga (PSI)</h4>
+                <ul style="list-style: disc; margin-left: 25px;">
+                    <li><strong>Herramienta:</strong> Manómetro Calibrado (o Manifold).</li>
+                    <li><strong>Ubicación:</strong> Puerto de servicio de baja (succión) y alta (descarga).</li>
+                    <li><strong>Procedimiento:</strong> Conecte el manómetro con el equipo apagado para purgar mangueras y luego encienda el equipo. Mida la presión <strong>una vez que el compresor estabilice</strong> la temperatura del gas.</li>
+                    <li><strong>Precisión:</strong> La presión de succión es crítica; debe ser <strong>traducida a temperatura de evaporación</strong> usando la <strong>Tabla P/T</strong> del refrigerante.</li>
+                </ul>
+
+                <h4 style="font-size: 1.1em; color: #00008B; margin-top: 15px;">4. Temperatura de Succión y Descarga de Tubería (°C)</h4>
+                <ul style="list-style: disc; margin-left: 25px;">
+                    <li><strong>Herramienta:</strong> Termómetro de Contacto Digital (Sonda con pinza).</li>
+                    <li><strong>Ubicación:</strong> Tubería de succión (cerca del compresor) y tubería de descarga (salida del compresor).</li>
+                    <li><strong>Procedimiento:</strong> Fije la pinza de contacto firmemente a la tubería y, si es posible, <strong>aísle la sonda</strong> para que no mida la temperatura ambiente.</li>
+                    <li><strong>Precisión:</strong> Esta medición se usa para calcular el <strong>Supercalentamiento</strong> (Temp Succión - Temp Saturación P/T) y el <strong>Subenfriamiento</strong> (Temp Saturación P/T - Temp Líquido).</li>
+                </ul>
+                
+                <h4 style="font-size: 1.1em; color: #00008B; margin-top: 15px;">5. ∆T (Diferencia de Temperatura Entrada-Salida de Aire)</h4>
+                <ul style="list-style: disc; margin-left: 25px;">
+                    <li><strong>Herramienta:</strong> Termómetro de Contacto Digital (Medición ambiental/punta de sonda).</li>
+                    <li><strong>Ubicación:</strong> <ul>
+                            <li><strong>T1 (Entrada):</strong> Centro de la rejilla de retorno (o filtro de aire).</li>
+                            <li><strong>T2 (Salida):</strong> Centro de la rejilla de suministro (difusor de aire frío).</li>
+                        </ul>
+                    </li>
+                    <li><strong>Procedimiento:</strong> Mida la temperatura del aire en ambos puntos con el equipo en régimen de enfriamiento. Reste $\text{T}1 - \text{T}2$.</li>
+                    <li><strong>Precisión:</strong> El resultado debe estar idealmente entre <strong>8–12°C</strong> (Con una tolerancia de +/- 1°C). Un valor fuera de este rango sugiere problemas de flujo de aire o de refrigeración.</li>
+                </ul>
+
+            </div>
+            <div style="text-align: right; border-top: 1px solid var(--border-color); padding: 15px 20px;">
+                <button id="closeGuideModalFooter" class="btn btn-secondary"> Cerrar Guía </button>
+            </div>
+        </div>
+    </div>
+    
     <script>
         let reviews = [];
         let settings = {};
@@ -1250,198 +1399,153 @@
         let sidebarCollapsed = false;
 
         function showSection(sectionId) {
-            document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
             document.getElementById(sectionId).classList.add('active');
-            document.querySelectorAll('.sidebar ul li a').forEach(a => a.classList.remove('active'));
-            const link = document.querySelector(`.sidebar ul li a[onclick="showSection('${sectionId}')"]`);
-            if (link) link.classList.add('active');
+            document.querySelectorAll('.sidebar ul li a').forEach(link => {
+                link.classList.remove('active');
+            });
+            document.querySelector(`.sidebar ul li a[onclick*="${sectionId}"]`).classList.add('active');
+            // Reset forms when switching to create sections
+            if (sectionId === 'createAireSection') {
+                resetFormAire();
+            } else if (sectionId === 'createNeveraSection') {
+                resetFormNevera();
+            }
         }
 
+        // --- Data Handling ---
         function saveData() {
             localStorage.setItem('reviews', JSON.stringify(reviews));
             localStorage.setItem('settings', JSON.stringify(settings));
         }
 
         function loadData() {
-            const savedReviews = localStorage.getItem('reviews');
-            const savedSettings = localStorage.getItem('settings');
-            if (savedReviews) reviews = JSON.parse(savedReviews);
-            if (savedSettings) settings = JSON.parse(savedSettings);
-
-            document.getElementById('companyName').value = settings.companyName || 'OSCAR OSPINO | CRIOSER SOLUTIONS';
-            document.getElementById('companyAddress').value = settings.companyAddress || '';
-            document.getElementById('companyPhone').value = settings.companyPhone || '';
-            document.getElementById('companyEmail').value = settings.companyEmail || '';
-            document.getElementById('companyNIT').value = settings.companyNIT || '';
+            const storedReviews = localStorage.getItem('reviews');
+            const storedSettings = localStorage.getItem('settings');
+            if (storedReviews) {
+                reviews = JSON.parse(storedReviews);
+            }
+            if (storedSettings) {
+                settings = JSON.parse(storedSettings);
+                document.getElementById('companyName').value = settings.companyName || '';
+                document.getElementById('companyAddress').value = settings.companyAddress || '';
+                document.getElementById('companyPhone').value = settings.companyPhone || '';
+                document.getElementById('companyEmail').value = settings.companyEmail || '';
+                document.getElementById('companyNIT').value = settings.companyNIT || '';
+            }
         }
 
-        function showAlert(message, type = 'success') {
-            const alertDiv = document.createElement('div');
-            alertDiv.classList.add('custom-alert', type);
-            alertDiv.textContent = message;
-            document.body.appendChild(alertDiv);
+        function clearAllData() {
+            reviews = [];
+            localStorage.removeItem('reviews');
+            renderReviews();
+            showAlert('Todas las revisiones han sido eliminadas.', 'success');
+        }
 
-            setTimeout(() => alertDiv.classList.add('show'), 10);
+        function exportData() {
+            const dataStr = JSON.stringify({ reviews: reviews, settings: settings }, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+            const exportFileDefaultName = `criosersolutions_data_export_${new Date().toISOString().slice(0, 10)}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            showAlert('Datos exportados exitosamente.', 'success');
+        }
+
+        // --- Alert and Confirm Functions ---
+        function showAlert(message, type = 'info') {
+            const alertBox = document.createElement('div');
+            alertBox.className = `custom-alert ${type}`;
+            alertBox.textContent = message;
+            document.body.appendChild(alertBox);
+
             setTimeout(() => {
-                alertDiv.classList.remove('show');
-                setTimeout(() => alertDiv.remove(), 500);
-            }, 3000);
+                alertBox.classList.add('show');
+            }, 10); // Start animation shortly after creation
+
+            setTimeout(() => {
+                alertBox.classList.remove('show');
+                setTimeout(() => alertBox.remove(), 500); // Remove after fade-out
+            }, 4000);
         }
 
-        function showConfirm(message, callback) {
-            const confirmModal = document.getElementById('customConfirm');
-            const confirmMessage = document.getElementById('confirmMessage');
+        function confirmAction(message, callback) {
+            const confirmBox = document.getElementById('customConfirm');
+            const overlay = document.getElementById('overlay');
+            document.getElementById('confirmMessage').textContent = message;
+            
+            overlay.classList.add('show');
+            confirmBox.classList.add('show');
+
             const confirmYes = document.getElementById('confirmYes');
             const confirmNo = document.getElementById('confirmNo');
-            const overlay = document.getElementById('overlay');
 
-            confirmMessage.textContent = message;
-            overlay.classList.add('show');
-            confirmModal.classList.add('show');
-
-            const yesHandler = () => {
-                callback();
-                closeConfirm();
-            };
-            const noHandler = () => {
-                closeConfirm();
-            };
-
-            confirmYes.addEventListener('click', yesHandler);
-            confirmNo.addEventListener('click', noHandler);
-
-            function closeConfirm() {
-                confirmModal.classList.remove('show');
+            const cleanup = () => {
+                confirmYes.onclick = null;
+                confirmNo.onclick = null;
                 overlay.classList.remove('show');
-                confirmYes.removeEventListener('click', yesHandler);
-                confirmNo.removeEventListener('click', noHandler);
-            }
-        }
-
-        function getFormData(form, type) {
-            const formData = new FormData(form);
-            const data = {};
-
-            // General Info
-            for (const [key, value] of formData.entries()) {
-                if (!key.includes('Medido') && !key.includes('Obs')) {
-                    data[key] = value;
-                }
-            }
-            data.imagesBase64 = type === 'aire' ? selectedImages : document.getElementById('neveraForm').imagesBase64; // Retrieve images for the specific form
-
-            // Electricos and Refrigeracion
-            const electricos = [];
-            const refrigeracion = [];
-
-            const electricosTable = document.getElementById(type === 'aire' ? 'aireElectricos' : 'neveraElectricos');
-            const refrigeracionTable = document.getElementById(type === 'aire' ? 'aireRefrigeracion' : 'neveraRefrigeracion');
-
-            // Process Electricos
-            const electricoInputs = electricosTable.querySelectorAll('tbody tr');
-            electricoInputs.forEach(row => {
-                const param = row.querySelector('td:first-child').textContent.trim();
-                const medidoInput = row.querySelector('input[name*="Medido"]');
-                const obsInput = row.querySelector('input[name*="Obs"]');
-                const normalValue = row.querySelector('td:nth-child(3)').textContent.trim();
-
-                electricos.push({
-                    param: param,
-                    medido: medidoInput ? medidoInput.value : '',
-                    normal: normalValue,
-                    obs: obsInput ? obsInput.value : ''
-                });
-            });
-
-            // Process Refrigeracion
-            const refrigeracionInputs = refrigeracionTable.querySelectorAll('tbody tr');
-            refrigeracionInputs.forEach(row => {
-                const param = row.querySelector('td:first-child').textContent.trim();
-                const medidoInput = row.querySelector('input[name*="Medido"]');
-                const obsInput = row.querySelector('input[name*="Obs"]');
-                const normalValue = row.querySelector('td:nth-child(3)').textContent.trim();
-
-                refrigeracion.push({
-                    param: param,
-                    medido: medidoInput ? medidoInput.value : '',
-                    normal: normalValue,
-                    obs: obsInput ? obsInput.value : ''
-                });
-            });
-
-            data.electrico = electricos;
-            data.refrigeracion = refrigeracion;
-            data.conclusion = document.getElementById(type === 'aire' ? 'conclusion' : 'conclusionNevera').value;
-
-            return data;
-        }
-
-        document.getElementById('aireForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const form = event.target;
-            const reviewData = {
-                id: currentEditingId || Date.now(),
-                type: 'aire',
-                fecha: form.fecha.value,
-                tecnico: form.tecnico.value,
-                cliente: form.cliente.value,
-                direccion: form.direccion.value,
-                telefono: form.telefono.value,
-                marca: form.marca.value,
-                modelo: form.modelo.value,
-                tipo: form.tipo.value,
-                capacidad: form.capacidad.value,
-                electrico: getTableData('aireElectricos'),
-                refrigeracion: getTableData('aireRefrigeracion'),
-                conclusion: form.conclusion.value,
-                imagesBase64: selectedImages.slice() // Copy the images
+                confirmBox.classList.remove('show');
             };
 
-            saveReview(reviewData);
-            resetFormAire();
-        });
-
-        document.getElementById('neveraForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const form = event.target;
-            const reviewData = {
-                id: currentEditingId || Date.now(),
-                type: 'nevera',
-                fecha: form.fechaNevera.value,
-                tecnico: form.tecnicoNevera.value,
-                cliente: form.clienteNevera.value,
-                direccion: form.direccionNevera.value,
-                telefono: form.telefonoNevera.value,
-                marca: form.marcaNevera.value,
-                modelo: form.modeloNevera.value,
-                tipo: form.tipoNevera.value,
-                capacidad: form.capacidadNevera.value,
-                electrico: getTableData('neveraElectricos'),
-                refrigeracion: getTableData('neveraRefrigeracion'),
-                conclusion: form.conclusionNevera.value,
-                imagesBase64: document.getElementById('neveraForm').imagesBase64.slice() || [] // Copy the images
+            confirmYes.onclick = () => {
+                cleanup();
+                callback();
             };
 
-            saveReview(reviewData);
-            resetFormNevera();
-        });
-
+            confirmNo.onclick = () => {
+                cleanup();
+            };
+        }
+        
+        // --- Form Submission and Data Retrieval ---
         function getTableData(tableId) {
             const table = document.getElementById(tableId);
             const data = [];
             const rows = table.querySelectorAll('tbody tr');
+            
             rows.forEach(row => {
+                const param = row.querySelector('td:first-child').textContent.trim();
+                const medidoInput = row.querySelector('input[name*="Medido"]');
+                const obsInput = row.querySelector('input[name*="Obs"]');
+                const normalValue = row.querySelector('td:nth-child(3)').textContent.trim();
+
                 data.push({
-                    param: row.cells[0].textContent.trim(),
-                    medido: row.querySelector('input[name*="Medido"]').value,
-                    normal: row.cells[2].textContent.trim(),
-                    obs: row.querySelector('input[name*="Obs"]').value,
+                    param: param,
+                    medido: medidoInput ? medidoInput.value : '',
+                    normal: normalValue,
+                    obs: obsInput ? obsInput.value : ''
                 });
             });
             return data;
         }
 
-        function saveReview(reviewData) {
+        function processFormSubmission(type, form) {
+            const formInputs = form.querySelectorAll('input, textarea');
+            let reviewData = {};
+            
+            // Get basic info
+            formInputs.forEach(input => {
+                if (input.name && !input.name.includes('Medido') && !input.name.includes('Obs') && !input.type.includes('file')) {
+                    reviewData[input.name] = input.value;
+                }
+            });
+
+            reviewData.id = currentEditingId || Date.now();
+            reviewData.type = type;
+            reviewData.imagesBase64 = type === 'aire' ? selectedImages : document.getElementById('neveraForm').imagesBase64; // Retrieve images for the specific form
+            
+            // Electricos and Refrigeracion
+            const electricos = getTableData(type === 'aire' ? 'aireElectricos' : 'neveraElectricos');
+            const refrigeracion = getTableData(type === 'aire' ? 'aireRefrigeracion' : 'neveraRefrigeracion');
+
+            reviewData.electrico = electricos;
+            reviewData.refrigeracion = refrigeracion;
+            reviewData.conclusion = form.querySelector('textarea[name="conclusion"]').value;
+            
             if (currentEditingId) {
                 const index = reviews.findIndex(r => r.id === currentEditingId);
                 if (index !== -1) {
@@ -1453,11 +1557,23 @@
                 reviews.push(reviewData);
                 showAlert('Revisión guardada exitosamente.');
             }
+            
             saveData();
             renderReviews();
             document.querySelector('#createAireSection h2').textContent = 'Diagnóstico de Aire Acondicionado';
             document.querySelector('#createNeveraSection h2').textContent = 'Diagnóstico de Nevera';
         }
+
+        document.getElementById('aireForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            processFormSubmission('aire', event.target);
+        });
+
+        document.getElementById('neveraForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            processFormSubmission('nevera', event.target);
+        });
+
 
         function resetFormAire() {
             document.getElementById('aireForm').reset();
@@ -1465,6 +1581,7 @@
             selectedImages = [];
             document.getElementById('imagePreviewsContainer').innerHTML = '';
             document.querySelector('#createAireSection h2').textContent = 'Diagnóstico de Aire Acondicionado';
+            document.getElementById('fecha').valueAsDate = new Date(); // Reset date
         }
 
         function resetFormNevera() {
@@ -1473,15 +1590,15 @@
             document.getElementById('neveraForm').imagesBase64 = [];
             document.getElementById('imagePreviewsContainerNevera').innerHTML = '';
             document.querySelector('#createNeveraSection h2').textContent = 'Diagnóstico de Nevera';
+            document.getElementById('fechaNevera').valueAsDate = new Date(); // Reset date
         }
 
         function editReview(id, type) {
             const review = reviews.find(r => r.id === id);
             if (!review) return;
-
             currentEditingId = id;
             showSection(type === 'aire' ? 'createAireSection' : 'createNeveraSection');
-
+            
             const form = document.getElementById(type === 'aire' ? 'aireForm' : 'neveraForm');
             form.querySelector(`h2`).textContent = `Editando Revisión de ${type === 'aire' ? 'Aire' : 'Nevera'} (ID: ${id})`;
 
@@ -1491,64 +1608,77 @@
             form.querySelector('input[name="cliente"]').value = review.cliente;
             form.querySelector('input[name="direccion"]').value = review.direccion;
             form.querySelector('input[name="telefono"]').value = review.telefono;
+            form.querySelector('input[name="telefonoCliente"]').value = review.telefonoCliente || '';
             form.querySelector('input[name="marca"]').value = review.marca;
             form.querySelector('input[name="modelo"]').value = review.modelo;
             form.querySelector('input[name="tipo"]').value = review.tipo;
             form.querySelector('input[name="capacidad"]').value = review.capacidad;
             form.querySelector('textarea[name="conclusion"]').value = review.conclusion;
 
-            // Fill Tables
-            fillTableInputs(type === 'aire' ? 'aireElectricos' : 'neveraElectricos', review.electrico);
-            fillTableInputs(type === 'aire' ? 'aireRefrigeracion' : 'neveraRefrigeracion', review.refrigeracion);
+            // Fill Tables (Electricos and Refrigeracion)
+            const electricosTable = document.getElementById(type === 'aire' ? 'aireElectricos' : 'neveraElectricos');
+            const refrigeracionTable = document.getElementById(type === 'aire' ? 'aireRefrigeracion' : 'neveraRefrigeracion');
 
-            // Handle Images
+            // Helper to fill table data
+            const fillTable = (table, reviewData) => {
+                const rows = table.querySelectorAll('tbody tr');
+                rows.forEach((row, index) => {
+                    if (reviewData[index]) {
+                        row.querySelector('input[name*="Medido"]').value = reviewData[index].medido;
+                        row.querySelector('input[name*="Obs"]').value = reviewData[index].obs;
+                    }
+                });
+            };
+
+            fillTable(electricosTable, review.electrico);
+            fillTable(refrigeracionTable, review.refrigeracion);
+
+            // Fill Images
+            const imageList = review.imagesBase64 || [];
+            const container = document.getElementById(type === 'aire' ? 'imagePreviewsContainer' : 'imagePreviewsContainerNevera');
+            container.innerHTML = '';
             if (type === 'aire') {
-                selectedImages = review.imagesBase64 || [];
-                renderImagePreviews(document.getElementById('imagePreviewsContainer'), selectedImages, 'imageUpload');
+                selectedImages = imageList.slice();
             } else {
-                document.getElementById('neveraForm').imagesBase64 = review.imagesBase64 || [];
-                renderImagePreviews(document.getElementById('imagePreviewsContainerNevera'), review.imagesBase64, 'imageUploadNevera');
+                document.getElementById('neveraForm').imagesBase64 = imageList.slice();
             }
-        }
 
-        function fillTableInputs(tableId, data) {
-            const table = document.getElementById(tableId);
-            const rows = table.querySelectorAll('tbody tr');
-            rows.forEach((row, index) => {
-                if (data[index]) {
-                    row.querySelector('input[name*="Medido"]').value = data[index].medido;
-                    row.querySelector('input[name*="Obs"]').value = data[index].obs;
-                }
+            imageList.forEach((base64, index) => {
+                const item = createImagePreviewItem(base64, container.id, imageList);
+                container.appendChild(item);
             });
         }
 
         function deleteReview(id) {
-            showConfirm('¿Está seguro de que desea eliminar esta revisión? Esta acción no se puede deshacer.', () => {
+            confirmAction('¿Está seguro de que desea eliminar esta revisión?', () => {
+                const initialLength = reviews.length;
                 reviews = reviews.filter(r => r.id !== id);
-                saveData();
-                renderReviews();
-                showAlert('Revisión eliminada.', 'error');
+                if (reviews.length < initialLength) {
+                    saveData();
+                    renderReviews();
+                    showAlert('Revisión eliminada exitosamente.', 'success');
+                }
             });
         }
 
         function renderReviews() {
-            const tbody = document.getElementById('reviewsTableBody');
-            tbody.innerHTML = '';
+            const tableBody = document.getElementById('reviewsTableBody');
+            tableBody.innerHTML = ''; // Clear existing rows
 
-            // Sort by date (most recent first)
-            const sortedReviews = [...reviews].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+            reviews.sort((a, b) => b.id - a.id); // Sort by newest first
 
-            sortedReviews.forEach(review => {
-                const row = tbody.insertRow();
+            reviews.forEach(review => {
+                const row = tableBody.insertRow();
                 row.innerHTML = `
-                    <td>${review.fecha}</td>
+                    <td>${review.id.toString().slice(-4)}</td>
                     <td>${review.type === 'aire' ? 'Aire Acondicionado' : 'Nevera'}</td>
+                    <td>${review.fecha}</td>
                     <td>${review.cliente}</td>
                     <td>${review.tecnico}</td>
                     <td>${review.marca} / ${review.modelo}</td>
                     <td class="actions">
                         <button class="btn" style="background-color: var(--info-color);" onclick="editReview(${review.id}, '${review.type}')"><i class="fas fa-edit"></i></button>
-                        <button class="btn" style="background-color: var(--success-color);" onclick="generatePdf${review.type.charAt(0).toUpperCase() + review.type.slice(1)}(${review.id})"><i class="fas fa-file-pdf"></i></button>
+                        <button class="btn" onclick="generatePDF('${review.type}', ${review.id})"><i class="fas fa-file-pdf"></i></button>
                         <button class="btn" style="background-color: var(--error-color);" onclick="deleteReview(${review.id})"><i class="fas fa-trash"></i></button>
                     </td>
                 `;
@@ -1558,7 +1688,7 @@
         function filterReviews() {
             const filter = document.getElementById('search').value.toUpperCase();
             const rows = document.getElementById('reviewsTableBody').querySelectorAll('tr');
-
+            
             rows.forEach(row => {
                 const textContent = row.textContent.toUpperCase();
                 if (textContent.indexOf(filter) > -1) {
@@ -1570,35 +1700,36 @@
         }
 
         // --- PDF Generation Logic ---
-
-        // Función renombrada y modificada para llenar las dos plantillas de página
         function fillPdfTemplates(templateType, reviewData) {
             const prefix = templateType === 'aire' ? 'Aire' : 'Nevera';
             const tableElectricos = document.getElementById(`pdfElectricos${prefix}`).querySelector('tbody');
             const tableRefrigeracion = document.getElementById(`pdfRefrigeracion${prefix}`).querySelector('tbody');
+            const pdfImagesContainer = document.getElementById(`pdfImages${prefix}`);
+            const conclusionElement = document.getElementById(`pdfConclusion${prefix}`);
 
             // 1. General Company Info (Va en Página 1)
             document.getElementById(`pdfHeaderCompanyName${prefix}`).textContent = settings.companyName || 'OSCAR OSPINO | CRIOSER SOLUTIONS';
             document.getElementById(`pdfCompanyAddress${prefix}`).textContent = settings.companyAddress || 'N/A';
             document.getElementById(`pdfCompanyPhone${prefix}`).textContent = `Teléfono: ${settings.companyPhone || 'N/A'}`;
             document.getElementById(`pdfCompanyEmail${prefix}`).textContent = `Email: ${settings.companyEmail || 'N/A'}`;
-            
-            // Asignación de NIT a los IDs específicos de cada template (Page 1)
-            const nitId = prefix === 'Aire' ? 'pdfCompanyNITAire' : 'pdfCompanyNITAvera';
-            document.getElementById(nitId).textContent = `NIT: ${settings.companyNIT || 'N/A'}`;
+            document.getElementById(`pdfCompanyNITAire`).textContent = `Código Empresarial: ${settings.companyNIT || 'N/A'}`;
+            document.getElementById(`pdfCompanyNITNevera`).textContent = `Código Empresarial: ${settings.companyNIT || 'N/A'}`;
             
             const logoElement = document.getElementById(`pdfCompanyLogo${prefix}`);
             if (settings.companyLogoBase64) {
                 logoElement.src = settings.companyLogoBase64;
                 logoElement.style.display = 'block';
             } else {
-                logoElement.src = templateType === 'aire' ? 'LogoAire.png' : 'LogoNevera.jpg';
+                logoElement.src = '';
+                logoElement.style.display = 'none';
             }
+
 
             // 2. Review Details (Va en Página 1)
             document.getElementById(`pdfCliente${prefix}`).textContent = reviewData.cliente;
             document.getElementById(`pdfDireccion${prefix}`).textContent = reviewData.direccion;
             document.getElementById(`pdfTelefono${prefix}`).textContent = reviewData.telefono;
+            document.getElementById(`pdfTelefonoCliente${prefix}`).textContent = reviewData.telefonoCliente;
             document.getElementById(`pdfFecha${prefix}`).textContent = reviewData.fecha;
             document.getElementById(`pdfTecnico${prefix}`).textContent = reviewData.tecnico;
             document.getElementById(`pdfMarca${prefix}`).textContent = reviewData.marca;
@@ -1606,71 +1737,74 @@
             document.getElementById(`pdfTipo${prefix}`).textContent = reviewData.tipo;
             document.getElementById(`pdfCapacidad${prefix}`).textContent = reviewData.capacidad;
 
-            // 3. Tables - Electricos (Página 1)
+            // 3. Electricos Table (Va en Página 1)
             tableElectricos.innerHTML = '';
-            reviewData.electrico.forEach(item => {
-                tableElectricos.innerHTML += `
-                    <tr>
-                        <td>${item.param}</td>
-                        <td>${item.medido}</td>
-                        <td>${item.normal}</td>
-                        <td>${item.obs}</td>
-                    </tr>
+            reviewData.electrico.forEach(data => {
+                const row = tableElectricos.insertRow();
+                row.innerHTML = `
+                    <td>${data.param}</td>
+                    <td>${data.medido}</td>
+                    <td>${data.normal}</td>
+                    <td>${data.obs}</td>
                 `;
             });
 
-            // 4. Tables - Refrigeracion (Página 2)
+            // 4. Refrigeracion Table (Va en Página 2)
             tableRefrigeracion.innerHTML = '';
-            reviewData.refrigeracion.forEach(item => {
-                tableRefrigeracion.innerHTML += `
-                    <tr>
-                        <td>${item.param}</td>
-                        <td>${item.medido}</td>
-                        <td>${item.normal}</td>
-                        <td>${item.obs}</td>
-                    </tr>
+            reviewData.refrigeracion.forEach(data => {
+                const row = tableRefrigeracion.insertRow();
+                row.innerHTML = `
+                    <td>${data.param}</td>
+                    <td>${data.medido}</td>
+                    <td>${data.normal}</td>
+                    <td>${data.obs}</td>
                 `;
             });
 
-            // 5. Conclusion (Página 2)
-            document.getElementById(`pdfConclusion${prefix}`).textContent = reviewData.conclusion;
+            // 5. Conclusion (Va en Página 2)
+            conclusionElement.textContent = reviewData.conclusion || 'Sin observaciones/conclusiones adicionales registradas.';
 
-            // 6. Images (Página 2)
-            const imagesContainer = document.getElementById(`pdfImagesContainer${prefix}`);
-            imagesContainer.innerHTML = '';
-            (reviewData.imagesBase64 || []).forEach(base64Image => {
-                imagesContainer.innerHTML += `<img src="${base64Image}" alt="Imagen del trabajo">`;
-            });
-
-            // 7. Footer Year (Página 2)
-            document.getElementById(`pdfCurrentYear${prefix}`).textContent = new Date().getFullYear();
+            // 6. Images (Va en Página 2)
+            pdfImagesContainer.innerHTML = '';
+            if (reviewData.imagesBase64 && reviewData.imagesBase64.length > 0) {
+                reviewData.imagesBase64.forEach(base64 => {
+                    const img = document.createElement('img');
+                    img.src = base64;
+                    pdfImagesContainer.appendChild(img);
+                });
+            } else {
+                pdfImagesContainer.innerHTML = '<p style="text-align: center; color: #888;">No se adjuntaron imágenes para esta revisión.</p>';
+            }
         }
 
-        // =========================================================================
-        // FUNCIÓN CORREGIDA PARA 2 PÁGINAS: generatePdfAire
-        // =========================================================================
-        async function generatePdfAire(reviewId = null) {
+        // --- PDF Generation Logic (CORREGIDA para descarga y WhatsApp) ---
+        async function generatePDF(type, id = null) {
+            const contentId = type === 'aire' ? 'aireForm' : 'neveraForm';
             let reviewData;
-            if (reviewId) {
-                reviewData = reviews.find(r => r.id === reviewId && r.type === 'aire');
+            let filename;
+
+            if (id !== null) {
+                reviewData = reviews.find(r => r.id === id);
             } else {
-                const form = document.getElementById('aireForm');
+                const form = document.getElementById(contentId);
+                // Si no hay ID, tomamos los datos actuales del formulario
                 reviewData = {
                     id: Date.now(),
-                    type: 'aire',
-                    fecha: form.fecha.value,
-                    tecnico: form.tecnico.value,
-                    cliente: form.cliente.value,
-                    direccion: form.direccion.value,
-                    telefono: form.telefono.value,
-                    marca: form.marca.value,
-                    modelo: form.modelo.value,
-                    tipo: form.tipo.value,
-                    capacidad: form.capacidad.value,
-                    electrico: getTableData('aireElectricos'),
-                    refrigeracion: getTableData('aireRefrigeracion'),
-                    conclusion: form.conclusion.value,
-                    imagesBase64: selectedImages.slice()
+                    type: type,
+                    fecha: form.querySelector('input[name="fecha"]').value,
+                    tecnico: form.querySelector('input[name="tecnico"]').value,
+                    cliente: form.querySelector('input[name="cliente"]').value,
+                    direccion: form.querySelector('input[name="direccion"]').value,
+                    telefono: form.querySelector('input[name="telefono"]').value,
+                    telefonoCliente: form.querySelector('input[name="telefonoCliente"]').value, // Nuevo campo de teléfono para WhatsApp
+                    marca: form.querySelector('input[name="marca"]').value,
+                    modelo: form.querySelector('input[name="modelo"]').value,
+                    tipo: form.querySelector('input[name="tipo"]').value,
+                    capacidad: form.querySelector('input[name="capacidad"]').value,
+                    electrico: getTableData(type === 'aire' ? 'aireElectricos' : 'neveraElectricos'),
+                    refrigeracion: getTableData(type === 'aire' ? 'aireRefrigeracion' : 'neveraRefrigeracion'),
+                    conclusion: form.querySelector('textarea[name="conclusion"]').value,
+                    imagesBase64: type === 'aire' ? selectedImages.slice() : document.getElementById('neveraForm').imagesBase64.slice()
                 };
             }
 
@@ -1679,140 +1813,85 @@
                 return;
             }
 
-            if (!settings.companyLogoBase64 && !confirm('Advertencia: El logo de la empresa no está configurado. ¿Desea continuar sin él?')) {
+            if (!settings.companyLogoBase64 && !confirmAction('Advertencia: El logo de la empresa no está configurado. ¿Desea continuar sin él?', () => {})) {
                 return;
             }
+
+            filename = `Revision_${type === 'aire' ? 'Aire' : 'Nevera'}_${reviewData.cliente.replace(/ /g, '_')}_${reviewData.fecha}.pdf`;
 
             // Llenar ambas plantillas de página
-            fillPdfTemplates('aire', reviewData);
+            fillPdfTemplates(type, reviewData);
 
-            const pdfTemplatePage1 = document.getElementById('pdfTemplateAirePage1');
-            const pdfTemplatePage2 = document.getElementById('pdfTemplateAirePage2');
+            const prefix = type === 'aire' ? 'Aire' : 'Nevera';
+            const pdfTemplatePage1 = document.getElementById(`pdfTemplate${prefix}Page1`);
+            const pdfTemplatePage2 = document.getElementById(`pdfTemplate${prefix}Page2`);
+            
+            // Determinar si se necesita la página 2
+            const page2Required = reviewData.refrigeracion.some(row => row.medido || row.obs) || reviewData.conclusion || (reviewData.imagesBase64 && reviewData.imagesBase64.length > 0);
 
-            // Hacer visibles ambas páginas para la captura
-            pdfTemplatePage1.style.display = 'block'; 
-            pdfTemplatePage2.style.display = 'block'; 
-
-            try {
-                const jsPDF = window.jspdf.jsPDF; 
-                const doc = new jsPDF('p', 'pt', 'a4');
-                const imgWidth = 595; // Ancho A4 en puntos
-
-                // --- CAPTURA Y ADICIÓN DE PÁGINA 1 ---
-                const canvas1 = await html2canvas(pdfTemplatePage1, {
-                    scale: 3, 
-                    logging: false,
-                    useCORS: true,
-                    scrollY: -window.scrollY
-                });
-                const imgData1 = canvas1.toDataURL('image/png');
-                const imgHeight1 = (canvas1.height * imgWidth) / canvas1.width;
-                doc.addImage(imgData1, 'PNG', 0, 0, imgWidth, imgHeight1);
-
-                // --- CAPTURA Y ADICIÓN DE PÁGINA 2 ---
-                doc.addPage(); // Forzar salto de página
-
-                const canvas2 = await html2canvas(pdfTemplatePage2, {
-                    scale: 3,
-                    logging: false,
-                    useCORS: true,
-                    scrollY: -window.scrollY
-                });
-                const imgData2 = canvas2.toDataURL('image/png');
-                const imgHeight2 = (canvas2.height * imgWidth) / canvas2.width;
-                doc.addImage(imgData2, 'PNG', 0, 0, imgWidth, imgHeight2);
-
-                doc.save(`Revision_Aire_${reviewData.cliente.replace(/ /g, '_')}_${reviewData.fecha}.pdf`);
-                showAlert('PDF generado exitosamente.');
-                
-            } catch (error) {
-                console.error('Error al generar el PDF:', error);
-                showAlert(`Error al generar el PDF. Revise la consola para detalles. (${error.message})`, 'error');
-            } finally {
-                // Ocultar ambas plantillas al finalizar
-                pdfTemplatePage1.style.display = 'none'; 
-                pdfTemplatePage2.style.display = 'none'; 
-            }
-        }
-
-        // =========================================================================
-        // FUNCIÓN CORREGIDA PARA 2 PÁGINAS: generatePdfNevera
-        // =========================================================================
-        async function generatePdfNevera(reviewId = null) {
-            let reviewData;
-            if (reviewId) {
-                reviewData = reviews.find(r => r.id === reviewId && r.type === 'nevera');
-            } else {
-                const form = document.getElementById('neveraForm');
-                reviewData = {
-                    id: Date.now(),
-                    type: 'nevera',
-                    fecha: form.fechaNevera.value,
-                    tecnico: form.tecnicoNevera.value,
-                    cliente: form.clienteNevera.value,
-                    direccion: form.direccionNevera.value,
-                    telefono: form.telefonoNevera.value,
-                    marca: form.marcaNevera.value,
-                    modelo: form.modeloNevera.value,
-                    tipo: form.tipoNevera.value,
-                    capacidad: form.capacidadNevera.value,
-                    electrico: getTableData('neveraElectricos'),
-                    refrigeracion: getTableData('neveraRefrigeracion'),
-                    conclusion: form.conclusionNevera.value,
-                    imagesBase64: document.getElementById('neveraForm').imagesBase64.slice() || []
-                };
-            }
-
-            if (!reviewData || !reviewData.cliente || !reviewData.tecnico) {
-                showAlert('Por favor, complete los campos obligatorios antes de generar el PDF.', 'error');
-                return;
-            }
-
-            if (!settings.companyLogoBase64 && !confirm('Advertencia: El logo de la empresa no está configurado. ¿Desea continuar sin él?')) {
-                return;
-            }
-
-            // Llenar ambas plantillas de página
-            fillPdfTemplates('nevera', reviewData);
-
-            const pdfTemplatePage1 = document.getElementById('pdfTemplateNeveraPage1');
-            const pdfTemplatePage2 = document.getElementById('pdfTemplateNeveraPage2');
-
-            // Hacer visibles ambas páginas para la captura
+            // Hacer visibles las páginas necesarias para la captura
             pdfTemplatePage1.style.display = 'block';
-            pdfTemplatePage2.style.display = 'block';
+            if (page2Required) {
+                pdfTemplatePage2.style.display = 'block';
+            } else {
+                pdfTemplatePage2.style.display = 'none';
+            }
+
 
             try {
-                const jsPDF = window.jspdf.jsPDF; 
-                const doc = new jsPDF('p', 'pt', 'a4');
-                const imgWidth = 595;
+                const jsPDF = window.jspdf.jsPDF;
+                const doc = new jsPDF('p', 'pt', 'a4'); // 'pt' is points, 595.28 x 841.89 A4
+                const a4Width = 595.28;
 
-                // --- CAPTURA Y ADICIÓN DE PÁGINA 1 ---
-                const canvas1 = await html2canvas(pdfTemplatePage1, {
-                    scale: 3,
-                    logging: false,
-                    useCORS: true,
-                    scrollY: -window.scrollY
+                // Capturar la primera página
+                let imgHeightPage1;
+                await html2canvas(pdfTemplatePage1, { scale: 2 }).then(canvas => {
+                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                    imgHeightPage1 = (canvas.height * a4Width) / canvas.width;
+                    doc.addImage(imgData, 'JPEG', 0, 0, a4Width, imgHeightPage1);
                 });
-                const imgData1 = canvas1.toDataURL('image/png');
-                const imgHeight1 = (canvas1.height * imgWidth) / canvas1.width;
-                doc.addImage(imgData1, 'PNG', 0, 0, imgWidth, imgHeight1);
 
-                // --- CAPTURA Y ADICIÓN DE PÁGINA 2 ---
-                doc.addPage(); // Forzar salto de página
+                // Capturar la segunda página (si aplica)
+                if (page2Required) {
+                    doc.addPage();
+                    let imgHeightPage2;
+                    await html2canvas(pdfTemplatePage2, { scale: 2 }).then(canvas => {
+                        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                        imgHeightPage2 = (canvas.height * a4Width) / canvas.width;
+                        doc.addImage(imgData, 'JPEG', 0, 0, a4Width, imgHeightPage2);
+                    });
+                }
+                
+                // ************************************************
+                // MODIFICACIÓN 1: FORZAR DESCARGA DEL PDF
+                // ************************************************
+                doc.save(filename); 
+                // ************************************************
 
-                const canvas2 = await html2canvas(pdfTemplatePage2, {
-                    scale: 3,
-                    logging: false,
-                    useCORS: true,
-                    scrollY: -window.scrollY
-                });
-                const imgData2 = canvas2.toDataURL('image/png');
-                const imgHeight2 = (canvas2.height * imgWidth) / canvas2.width;
-                doc.addImage(imgData2, 'PNG', 0, 0, imgWidth, imgHeight2);
 
-                doc.save(`Revision_Nevera_${reviewData.cliente.replace(/ /g, '_')}_${reviewData.fecha}.pdf`);
-                showAlert('PDF generado exitosamente.');
+                // ************************************************
+                // MODIFICACIÓN 2: ENVIAR MENSAJE A WHATSAPP
+                // ************************************************
+                const telefonoCliente = reviewData.telefonoCliente.replace(/\D/g, ''); // Limpiar el número, solo dígitos
+                if (telefonoCliente && telefonoCliente.length >= 10) { // Asumir mínimo 10 dígitos para ser válido (ej. 57310xxxxxxx)
+                    
+                    showAlert('PDF generado y descargado exitosamente. Abriendo chat de WhatsApp...', 'success');
+
+                    const nombreCliente = reviewData.cliente.split(' ')[0];
+                    const tipoEquipo = type === 'aire' ? 'Aire Acondicionado' : 'Nevera';
+                    const numRevision = reviewData.id.toString().slice(-4); // Usar los últimos 4 dígitos del ID como "número de revisión"
+
+                    const message = `¡Hola ${nombreCliente}! 👋 Le adjuntamos su revisión técnica. Los detalles son:\n\n*Revisión No.* ${numRevision}\n*Equipo:* ${tipoEquipo}\n*Marca:* ${reviewData.marca}\n*Modelo:* ${reviewData.modelo}\n*Realizada el:* ${reviewData.fecha}\n*Técnico:* ${reviewData.tecnico}\n\nEl reporte completo se ha descargado. Gracias por preferir CRIOSER SOLUTIONS.`;
+                    
+                    // Usar wa.me para la API oficial de WhatsApp
+                    const whatsappUrl = `https://wa.me/${telefonoCliente}?text=${encodeURIComponent(message)}`;
+
+                    // Abrir el enlace de WhatsApp en una nueva pestaña
+                    window.open(whatsappUrl, '_blank');
+                } else {
+                    showAlert('Advertencia: PDF descargado, pero no se pudo abrir el enlace de WhatsApp. El teléfono del cliente (WhatsApp) no es válido o está vacío.', 'warning');
+                }
+                // ************************************************
                 
             } catch (error) {
                 console.error('Error al generar el PDF:', error);
@@ -1823,72 +1902,56 @@
                 pdfTemplatePage2.style.display = 'none';
             }
         }
-
+        // --- FIN FUNCIÓN GENERACIÓN PDF ---
 
         // --- Image Handling Logic ---
-
-        function handleImageUpload(event, containerId, imageList) {
-            const files = Array.from(event.target.files);
-            const container = document.getElementById(containerId);
-
-            files.forEach(file => {
-                if (imageList.length < MAX_IMAGES && file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        imageList.push(e.target.result);
-                        renderImagePreviews(container, imageList, event.target.id);
-                    };
-                    reader.readAsDataURL(file);
-                } else if (imageList.length >= MAX_IMAGES) {
-                    showAlert(`Solo se permiten un máximo de ${MAX_IMAGES} imágenes.`, 'warning');
+        function createImagePreviewItem(base64, containerId, imageList) {
+            const item = document.createElement('div');
+            item.className = 'image-preview-item';
+            item.innerHTML = `<img src="${base64}" alt="Preview">
+                              <button type="button" class="remove-image-btn" data-base64="${base64}">&times;</button>`;
+            
+            item.querySelector('.remove-image-btn').addEventListener('click', (e) => {
+                const index = imageList.indexOf(base64);
+                if (index > -1) {
+                    imageList.splice(index, 1);
+                    e.target.closest('.image-preview-item').remove();
+                    showAlert('Imagen eliminada.');
                 }
             });
-
-            // Clear the file input after processing
-            event.target.value = ''; 
+            return item;
         }
 
-        function renderImagePreviews(container, imageList, inputId) {
-            container.innerHTML = '';
-            imageList.forEach((imageBase64, index) => {
-                const item = document.createElement('div');
-                item.classList.add('image-preview-item');
-                item.innerHTML = `
-                    <img src="${imageBase64}" alt="Preview ${index + 1}">
-                    <button class="remove-image-btn" onclick="removeImage('${inputId}', ${index})"><i class="fas fa-times"></i></button>
-                `;
-                container.appendChild(item);
-            });
-        }
+        function handleImageUpload(event, containerId, imageList) {
+            const files = event.target.files;
+            const container = document.getElementById(containerId);
+            const filesToProcess = Array.from(files).slice(0, MAX_IMAGES - imageList.length);
 
-        function removeImage(inputId, index) {
-            let imageList;
-            let container;
-
-            if (inputId === 'imageUpload') {
-                imageList = selectedImages;
-                container = document.getElementById('imagePreviewsContainer');
-            } else if (inputId === 'imageUploadNevera') {
-                // For the Nevera form, we store images on the form object itself
-                imageList = document.getElementById('neveraForm').imagesBase64;
-                container = document.getElementById('imagePreviewsContainerNevera');
-            } else {
+            if (imageList.length >= MAX_IMAGES) {
+                showAlert(`Solo se permiten ${MAX_IMAGES} imágenes por revisión.`, 'warning');
+                event.target.value = ''; // Clear file input
                 return;
             }
 
-            imageList.splice(index, 1);
-            renderImagePreviews(container, imageList, inputId);
+            filesToProcess.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (imageList.length < MAX_IMAGES) {
+                        const base64 = e.target.result;
+                        imageList.push(base64);
+                        const item = createImagePreviewItem(base64, containerId, imageList);
+                        container.appendChild(item);
+                        showAlert('Imagen cargada.');
+                    } else {
+                        showAlert(`Límite de ${MAX_IMAGES} imágenes alcanzado.`, 'warning');
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+            event.target.value = ''; // Clear file input for next time
         }
 
-        // Initialize form-specific image storage
-        document.getElementById('neveraForm').imagesBase64 = [];
-
-        // Attach image upload listeners
-        document.getElementById('imageUpload').addEventListener('change', (e) => handleImageUpload(e, 'imagePreviewsContainer', selectedImages));
-        document.getElementById('imageUploadNevera').addEventListener('change', (e) => handleImageUpload(e, 'imagePreviewsContainerNevera', document.getElementById('neveraForm').imagesBase64));
-
         // --- Settings Logic ---
-
         document.getElementById('settingsForm').addEventListener('submit', function(event) {
             event.preventDefault();
             const form = event.target;
@@ -1898,25 +1961,24 @@
             settings.companyEmail = form.companyEmail.value;
             settings.companyNIT = form.companyNIT.value;
             saveData();
-            showAlert('Ajustes guardados exitosamente.');
+            showAlert('Ajustes guardados exitosamente.', 'success');
         });
 
-        document.getElementById('companyLogo').addEventListener('change', function(event) {
+        function handleLogoUpload(event) {
             const file = event.target.files[0];
-            if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    settings.companyLogoBase64 = e.target.result;
-                    const preview = document.getElementById('logoPreview');
-                    preview.innerHTML = `<img src="${e.target.result}" alt="Logo Preview" style="max-width: 150px;">`;
-                };
-                reader.readAsDataURL(file);
-            } else {
-                showAlert('Solo se permiten archivos de imagen.', 'error');
-            }
-        });
+            if (!file) return;
 
-        // Sidebar Toggle
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                settings.companyLogoBase64 = e.target.result;
+                document.getElementById('logoPreview').innerHTML = `<img src="${settings.companyLogoBase64}" alt="Logo Preview" style="max-width: 150px;">`;
+                saveData();
+                showAlert('Logo cargado exitosamente.');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // --- Sidebar Toggle ---
         document.getElementById('sidebarToggle').addEventListener('click', () => {
             sidebarCollapsed = !sidebarCollapsed;
             const sidebar = document.getElementById('sidebar');
@@ -1932,6 +1994,43 @@
                 toggleIcon.classList.replace('fa-chevron-right', 'fa-chevron-left');
             }
         });
+
+        // --- Guía de Medición Modal Logic ---
+        const guideModal = document.getElementById('guideModal');
+        const openGuideBtnAir = document.getElementById('openGuideBtnAir');
+        const openGuideBtnFridge = document.getElementById('openGuideBtnFridge');
+        const closeGuideModal = document.getElementById('closeGuideModal');
+        const closeGuideModalFooter = document.getElementById('closeGuideModalFooter');
+
+        const openGuideModal = () => {
+            guideModal.style.display = 'flex';
+            setTimeout(() => guideModal.querySelector('.measurement-modal-content').classList.add('show'), 10);
+        };
+
+        const closeGuideModalFunc = () => {
+            guideModal.querySelector('.measurement-modal-content').classList.remove('show');
+            setTimeout(() => guideModal.style.display = 'none', 300);
+        }
+
+        if (openGuideBtnAir) {
+            openGuideBtnAir.addEventListener('click', openGuideModal);
+        }
+        if (openGuideBtnFridge) {
+            openGuideBtnFridge.addEventListener('click', openGuideModal);
+        }
+
+        if (closeGuideModal) {
+            closeGuideModal.addEventListener('click', closeGuideModalFunc);
+        }
+        if (closeGuideModalFooter) {
+            closeGuideModalFooter.addEventListener('click', closeGuideModalFunc);
+        }
+        window.addEventListener('click', (event) => {
+            if (event.target === guideModal) {
+                closeGuideModalFunc();
+            }
+        });
+        // FIN MODIFICACIÓN 2
 
         document.addEventListener('DOMContentLoaded', () => {
             loadData();
